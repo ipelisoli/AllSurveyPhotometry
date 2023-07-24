@@ -329,8 +329,6 @@ if __name__ == '__main__':
         # GaiaABS_G = 0
         # Teff = 0
 
-        print("### WORKING ON OBJECT %s %s ###"%(RAdeg, Decdeg))
-
         Gaia_Gmag = t['phot_g_mean_mag_corrected'].value[count]   #   the Gaia magnitude in the Gband
         ref_epoch = t['ref_epoch'].value[count]   #   the Gaia reference epoch (e.g. 2016)
         propermRA = t['pmra'].value[count]     # the Gaia proper motion in RA
@@ -345,17 +343,31 @@ if __name__ == '__main__':
 
         RA,Dec = miscAstro.ra_dec_deg_to_hr(RAdeg,Decdeg)
 
-        if Decdeg<0:    RADec=str(RA) + " " + str(Dec)
-        else:  RADec=str(RA) + " +" + str(Dec)
+        if Decdeg<0:
+            RADec=str(RA) + " " + str(Dec)
+            RAtemp = str(RA).replace(":", "")
+            RAtemp = RAtemp.ljust(9, "0")[:9]
+            DEtemp = str(Dec).replace(":", "")
+            DEtemp = DEtemp.ljust(9, "0")[:9]
+            jname = "J" + RAtemp + DEtemp
+        else:
+            RADec=str(RA) + " +" + str(Dec)
+            RAtemp = str(RA).replace(":", "")
+            RAtemp = RAtemp.ljust(9, "0")[:9]
+            DEtemp = str(Dec).replace(":", "")
+            DEtemp = DEtemp.ljust(8, "0")[:8]
+            jname = "J" + RAtemp + "+" + DEtemp
 
-        folder = os.getcwd()+"/"+str(RADec)
+        folder = os.getcwd()+"/"+str(jname)
+
+        print("### WORKING ON OBJECT %s ###"%jname)
 
         try:
             if remove_old_dir==True:     miscAstro.remDir(folder)
         except:None
 
         # make new dir and go to dir. if this breaks, dir already exists and we enter current dir
-        try: os.mkdir(str(RADec))
+        try: os.mkdir(str(jname))
         except: None
         os.chdir(folder)
 
