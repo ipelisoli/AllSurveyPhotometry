@@ -66,29 +66,29 @@ def Final_SDSS(RAdeg, Decdeg, rad=1.):
     # get_SDSS
     rad=rad/60. #arcmin
     scale=0.1
-    #try:
-    query=SDSSclass.get_SDSSquery(RAdeg,Decdeg,rad)
-    photSDSS = SDSSclass.search_SDSS_phot(query)
+    try:
+        query=SDSSclass.get_SDSSquery(RAdeg,Decdeg,rad)
+        photSDSS = SDSSclass.search_SDSS_phot(query)
 
-    if photSDSS:
-        spec=SDSSclass.search_SDSS_spectrum(query,RAdeg,Decdeg,rad)
-        if spec is not None:
-            SDSSclass.plot_SDSS_spec("spec",spec)
-            fspec=True
+        if photSDSS:
+            spec=SDSSclass.search_SDSS_spectrum(query,RAdeg,Decdeg,rad)
+            if spec is not None:
+                SDSSclass.plot_SDSS_spec("spec",spec)
+                fspec=True
+            else:
+                fspec=False
+
+            uv,g,r,i,z=SDSSclass.get_SDSSmagsUGRIZ("ugriz",RAdeg,Decdeg)
+
+            url=SDSSclass.get_findingchart_url(RAdeg,Decdeg,scale)
+            SDSSclass.createShortcut(url, str(cwd)+"/")
+            SDSSclass.scrapeImageFromShortcut(url)
+            return uv,g,r,i,z,fspec
         else:
-            fspec=False
-
-        uv,g,r,i,z=SDSSclass.get_SDSSmagsUGRIZ("ugriz",RAdeg,Decdeg)
-
-        url=SDSSclass.get_findingchart_url(RAdeg,Decdeg,scale)
-        SDSSclass.createShortcut(url, str(cwd)+"/")
-        SDSSclass.scrapeImageFromShortcut(url)
-        return uv,g,r,i,z,fspec
-    else:
-        print("No SDSS data found.\n")
-        return None
-    #except:
-    #    print("Warning! SDSS query failed.\n")
+            print("No SDSS data found.\n")
+            return None
+    except:
+        print("Warning! SDSS query failed.\n")
 
 
 def Final_phot_SED_CDS(RADec):
@@ -253,11 +253,10 @@ def FinalWISE(RAdeg, Decdeg, gmag):
         except: None
 
 def FinalNEOWISE(RAdeg, Decdeg, gmag):
-    if wantNEOWISE == True and gmag<16.6:#and not "NEOWISE.csv" in os.listdir(os.getcwd()):
-        try:
-            NEOWISE.queryWise(RAdeg,Decdeg)
-            NEOWISE.saveFilters(RAdeg,Decdeg, gmag)
-        except Exception as e: print("error neowise"); print(e)
+    try:
+        NEOWISE.queryWise(RAdeg,Decdeg)
+        NEOWISE.saveFilters(RAdeg,Decdeg, gmag)
+    except Exception as e: print("error neowise"); print(e)
 
 def FinalCDS(RAdeg, Decdeg):
     if wantCDS==True:
@@ -308,7 +307,7 @@ if __name__ == '__main__':
 
     # TESS exposure times to search for? not all are always available
     exptimes=['fast', 'short', 'long']
-    t = Table.read("example3.fits")
+    t = Table.read("example.fits")
 
 
     NameOfNewDir = "Objects"
@@ -399,13 +398,15 @@ if __name__ == '__main__':
             if photSDSS is not None:
                 uv,g,r,i,z,spec = photSDSS
                 print("u=%4.1f, g=%4.1f, r=%4.1f, i=%4.1f, z=%4.1f" %(uv,g,r,i,z))
-            if spec:
-                print("Found at least one spectrum.\n")
-            else:
-                print("No spectra found.\n")
+                if spec:
+                    print("Found at least one spectrum.\n")
+                else:
+                    print("No spectra found.\n")
 
-        p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
-        p0.start()
+        if wantNEOWISE:
+            print("Querying neoWISE...")
+            p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
+            p0.start()
 
         p1 = Process(target = Final_phot_SED_CDS(RADec))
         p1.start()
