@@ -35,7 +35,7 @@ checkLocalStars.py - performs a search for close stars using Gaia to not bother 
 
 
 # What do you need to do?
-- Download this repository and look at getScripts/getpwds.py  . Here you need to include your [ATLAS](https://fallingstar-data.com/forcedphot/) login details and your [IRSA](https://irsa.ipac.caltech.edu/Missions/ztf.html) account details.
+- Download this repository and copy getScripts/getpwds_example.py to getScripts/getpwds.py. Include there your [ATLAS](https://fallingstar-data.com/forcedphot/) login details and your [IRSA](https://irsa.ipac.caltech.edu/Missions/ztf.html) account details.
 - Open the obtainDataMutiprocess.py script and scroll to the __main__ part.  You will see boolean statements for which surveys you want to query and some optional commands (e.g. proper motion) which need to be set... a list of default options are included but may not grant full functionality.
 - Read in your RA and Dec (or lists of these) in degrees
 - (Optional) Inspect the search options for each survey - separated at the top of each function in obtainMultiProcess.py are the search radii for each survey
