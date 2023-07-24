@@ -95,9 +95,8 @@ def Final_phot_SED_CDS(RADec):
     # get_photometric_SED_CDS
     search_radius_SED = 3 # arcsec
     try:
-        if wantSED: # this is globally set at the start
-            url=photometricSED.get_url_CDS(RADec, rad=search_radius_SED)
-            photometricSED.plot_SED(url)
+        url=photometricSED.get_url_CDS(RADec, rad=search_radius_SED)
+        photometricSED.plot_SED(url)
     except: None
 
 
@@ -408,8 +407,10 @@ if __name__ == '__main__':
             p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
             p0.start()
 
-        p1 = Process(target = Final_phot_SED_CDS(RADec))
-        p1.start()
+        if wantSED:
+            p1 = Process(target = Final_phot_SED_CDS(RADec))
+            p1.start()
+
         try:
             if wantTess == True or wantK2 == True or wantATLASforced==True:
                 obj, star_mag = checkLocalStars.find_star_in_gaia_edr3(RAdeg,Decdeg) #added in case there is a formatting mismatch, otherwise you could use Nicola's catalogue
@@ -470,7 +471,8 @@ if __name__ == '__main__':
 
 
         p0.join()
-        p1.join() # these make it so that the bunch terminates when the final process pX does
+        if wantSED:
+            p1.join() # these make it so that the bunch terminates when the final process pX does
         if wantTess==True and joinTESS==True:
             try: p2.join()
             except: None
