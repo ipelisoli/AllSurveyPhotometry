@@ -21,15 +21,15 @@ class SDSSclass(object):
         #note: can add colour/mag limits to this query
         res = SDSS.query_sql(query)
         return res
-    
-    
+
+
     def plot_SDSS_spec(name,spec):
         hdulist=spec[0]
         c0 = hdulist[0].header['coeff0']
         c1 = hdulist[0].header['coeff1']
         npix = hdulist[1].header['naxis2']
         wave = 10.**(c0 + c1 * np.arange(npix))
-        
+
         bunit = hdulist[0].header['bunit']
         data = hdulist[1].data
         flux=data["flux"]
@@ -37,10 +37,10 @@ class SDSSclass(object):
         data2=hdulist[3].data
         line=data2["LINENAME"]
         linewave=data2["LINEWAVE"]
-        
+
         SPECra=hdulist[0].header['PLUG_RA']
         SPECdec=hdulist[0].header['PLUG_DEC']
-        
+
         justH=True
         plt.plot(wave, (flux) , 'k')
         for count, i in enumerate(line):
@@ -65,8 +65,8 @@ class SDSSclass(object):
                         plt.axvline(linewave[count], label="Ne", c='brown', alpha=0.5)
                     else:
                         plt.axvline(linewave[count], label=str(i), c='red', alpha=0.5)
-        
-        
+
+
         handles, labels = plt.gca().get_legend_handles_labels()
         newLabels, newHandles = [], []
         for handle, label in zip(handles, labels):
@@ -74,26 +74,26 @@ class SDSSclass(object):
             newLabels.append(label)
             newHandles.append(handle)
         plt.legend(newHandles, newLabels)
-        
+
         plt.xlabel("Wavelength (AA)")
         try:
             plt.ylabel(bunit)
         except:
             plt.ylabel("Flux")
         np.savetxt("full_linelist.txt", np.asarray(line), fmt="%s")
-        
+
         plt.xlim(np.amin(wave), np.amax(wave))
         plt.title("RA " + str(SPECra) + ", " + "Dec " + str(SPECdec))
         plt.savefig(str(name)+".png")
         hdulist.close()
-        
-    
+
+
     def get_SDSSmagsUGRIZ(name, RA,Dec):
         co = coords.SkyCoord(ra=RA*u.degree, dec=Dec*u.degree,frame="icrs")
         #result = SDSS.query_crossid(co, photoobj_fields=['modelMag_g', 'modelMag_i'])
-        
+
         result = SDSS.query_crossid(co)
-        
+
         magU=result["psfMag_u"].value[0]
         magUe=result["psfMagerr_u"].value[0]
         magG=result["psfMag_g"].value[0]
@@ -104,24 +104,24 @@ class SDSSclass(object):
         magIe=result["psfMagerr_i"].value[0]
         magZ=result["psfMag_z"].value[0]
         magZe=result["psfMagerr_z"].value[0]
-        
-        
+
+
         mags=[magU,magG,magR,magI,magZ]
         magsE=[magUe,magGe,magRe,magIe,magZe]
         np.savetxt(str(name)+ ".csv", np.array([mags,magsE]).T)
-        
+
         return magU,magG,magR,magI,magZ
-    
-    
-    def search_SDSS_spectrum(query,RA, Dec):
+
+
+    def search_SDSS_spectrum(query,RA, Dec, rad):
         co = coords.SkyCoord(ra=RA*u.degree, dec=Dec*u.degree)
         result = SDSS.query_region(co, spectro=True)
         if result:
-            spec = SDSS.get_spectra(matches=result, radius=1*u.arcsec)
+            spec = SDSS.get_spectra(matches=result, radius=rad*u.arcsec)
+            return spec
         else:
-            spec="NoSPEC"
-        return spec
-    
+            return None    
+
     def get_SDSSquery(RA,Dec,rad):
         #http://skyserver.sdss.org/dr12/en/tools/search/form/searchform.aspx
         query="select top 10 p.objid, p.ra, p.dec, p.u, p.g, p.r, p.i, p.z      from star p, dbo.fgetNearByObjEq("
@@ -132,8 +132,8 @@ class SDSSclass(object):
         query+=str(rad)
         query+=") n         where p.objid=n.objid"
         return query
-        
-    
+
+
     def get_findingchart_url(RA,Dec,scale):
         url="skyserver.sdss.org/dr16/en/tools/chart/image.aspx?ra="
         url+=str(RA)
@@ -142,10 +142,10 @@ class SDSSclass(object):
         url+="&scale="
         url+=str(scale)
         url+="&height=512&width=512&opt=GO"
-        
+
         return url
-    
-    
+
+
     def createShortcut(url, destination):
         text = '[InternetShortcut]\nURL=https://{}\nIconIndex=0'.format(url)
         with open(destination + 'SDSS.url', 'w') as fw:
@@ -163,12 +163,3 @@ class SDSSclass(object):
                     img = Image.open(requests.get(image_src['src'], stream = True).raw)
                     img.save('SDSS.png')
                 except: None
-
-
-
-
-        
-
-
-
-
