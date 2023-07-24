@@ -8,10 +8,10 @@ Created on Tue May 31 16:23:45 2022
 
 class getpwds():
     def ATLAS():
-        atlasUsername='@email.com'
-        atlasPassword='Password'
+        atlasUsername='user'
+        atlasPassword='pass'
         return [atlasUsername, atlasPassword]
     def ZTF():
-        ztfUsername='@email.com'
-        ztfPassword='Password'
+        ztfUsername='user@email'
+        ztfPassword='pass'
         return [ztfUsername, ztfPassword]
