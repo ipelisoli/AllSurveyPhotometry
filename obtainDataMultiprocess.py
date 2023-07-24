@@ -83,8 +83,10 @@ def Final_SDSS(RAdeg, Decdeg, rad=1.):
             SDSSclass.scrapeImageFromShortcut(url)
             return uv,g,r,i,z
         else:
-            return "a", "a", "a", "a", "a"
-    except: None
+            print("No SDSS data found.\n")
+            return None
+    except:
+        print("Warning! SDSS query failed.\n")
 
 
 def Final_phot_SED_CDS(RADec):
@@ -304,7 +306,7 @@ if __name__ == '__main__':
 
     # TESS exposure times to search for? not all are always available
     exptimes=['fast', 'short', 'long']
-    t = Table.read("example.fits")
+    t = Table.read("example2.fits")
 
 
     NameOfNewDir = "Objects"
@@ -391,8 +393,10 @@ if __name__ == '__main__':
 
         if wantSDSS:
             print("Querying SDSS...")
-            uv,g,r,i,z=Final_SDSS(RAdeg,Decdeg,radSDSS)
-            print(uv,g,r,i,z)
+            photSDSS=Final_SDSS(RAdeg,Decdeg,radSDSS)
+            if photSDSS is not None:
+                uv,g,r,i,z = photSDSS
+                print("u=%4.1f, g=%4.1f, r=%4.1f, i=%4.1f, z=%4.1f\n" %(uv,g,r,i,z))
 
         p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
         p0.start()
