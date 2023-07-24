@@ -39,7 +39,7 @@ from getpwds import getpwds
 from getASASSNweb import getASASSNweb
 from distutils.dir_util import copy_tree
 from getGaiaDatalink import GaiaDatalink
-
+import yaml  # Read from yml configuration file.
 
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
@@ -70,20 +70,20 @@ def Final_SDSS(RAdeg, Decdeg):
         try:
             query=SDSSclass.get_SDSSquery(RAdeg,Decdeg,rad)
             photSDSS = SDSSclass.search_SDSS_phot(query)
-            
+
             if photSDSS:
                 spec=SDSSclass.search_SDSS_spectrum(query, RAdeg, Decdeg)
                 if not spec=="NoSPEC":
                     SDSSclass.plot_SDSS_spec("spec",spec)
-                
-                
+
+
                 uv,g,r,i,z=SDSSclass.get_SDSSmagsUGRIZ("ugriz",RAdeg, Decdeg)
-                
+
                 url=SDSSclass.get_findingchart_url(RAdeg,Decdeg,scale)
                 SDSSclass.createShortcut(url, str(cwd)+"/")
                 SDSSclass.scrapeImageFromShortcut(url)
                 return uv,g,r,i,z
-            else: 
+            else:
                 return "a", "a", "a", "a", "a"
         except: None
 
@@ -99,13 +99,13 @@ def Final_phot_SED_CDS(RADec):
 
 
 def Final_K2(RADec):
-    # getK2 
+    # getK2
     search_radius_K2 = 4 # arcsec
     if wantK2==True: # this is globally set at the start
         split=RADec.split(":")
         split2=split[2].split(" ")
         # kepler coverage: RA=19h22m40s and Dec=+44˚30'00"(J2000)
-        
+
         if int(split[0]) >=18 and int(split[0]) <=20 and int(split2[1]) >= 40 and int(split2[1])<=50: # this is where K2 imaged
             for time in exptimes:
                 K2.get_K2(RADec, exptime=time, radius=4, ignore_any_dodgyness=False) # radius in arcsec
@@ -141,7 +141,7 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec):
             try: ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
             except: None
 
-        
+
 
 def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #come back to this and also don't recompute stuff I already have
     # get ATLAS forced photometry
@@ -149,7 +149,7 @@ def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #c
     # https://fallingstar-data.com/forcedphot/apiguide/
     try:
         if wantATLASforced==True: # this is globally set at the start
-        
+
             if "data.txt" in os.listdir(os.getcwd()) and not "dataATLASalreadyprocessed.txt" in os.listdir(os.getcwd()): #if I manually had to get the file from ATLAS because of a break
                 a = dfresult = pd.read_csv("data.txt", delim_whitespace=True)
                 if minimumMJD==50000:
@@ -157,40 +157,40 @@ def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #c
                 else:
                     getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
                 np.savetxt("dataATLASalreadyprocessed.txt", np.array(["nope"]))
-        
+
             else:
                 if "ATLAS_filtC_flux_and_err.dat" in os.listdir(os.getcwd()) or "ATLAS_filtO_flux_and_err.dat" in os.listdir(os.getcwd()):
                     try:
                         MJD_c,uJy_c, duJy_c, RA_c, Dec_c = np.loadtxt("ATLAS_filtC_flux_and_err.dat", unpack=True)
                         maxMJD_c=np.amax(MJD_c)+0.1 # +0.1 just to ignore the first measurement
                     except: None
-                    
+
                     try:
                         MJD_o,uJy_o, duJy_o, RA_o, Dec_o = np.loadtxt("ATLAS_filtO_flux_and_err.dat", unpack=True)
                         maxMJD_o=np.amax(MJD_o)+0.1 # +0.1 just to ignore the first measurement
                     except: None
-                    
+
                     # first get the largest MJD value between both files if they exist
                     try: minimumMJD=np.amax(np.array([maxMJD_c,maxMJD_o]))
                     except:
                         try: #otherwise get the largest of the _c file
                             minimumMJD=maxMJD_c*-1
                         except: #otherwise get the largest of the _o file
-                            minimumMJD=maxMJD_o*-1        
+                            minimumMJD=maxMJD_o*-1
                 else: minimumMJD=50000 # else there is no prior entry and we ask for all the data
-                
+
                 dt = datetime.today().strftime('%Y-%m-%d')
                 today=(list(sqlite3.connect(":memory:").execute("select julianday('" + dt + "')"))[0][0] -2400000.5)
-                
+
                 if abs(today-minimumMJD)>182.5:
-                    a=getATLASforcedPHOT.ATLAS(getpwds.ATLAS()[0], getpwds.ATLAS()[1], RAdeg, Decdeg, 
+                    a=getATLASforcedPHOT.ATLAS(getpwds.ATLAS()[0], getpwds.ATLAS()[1], RAdeg, Decdeg,
                                                reference_epoch, pmra, pmdec, minMJD=minimumMJD)#minimumMJD)
-                    
+
                     if minimumMJD==50000:
                         getATLASforcedPHOT.plot_and_save_data(a,"FirstTime")
                     else:
                         getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
-                
+
     except:
         with open("../../list_of/bad_atlas.txt", "a") as atlasfile:
             atlasfile.write(str(RA) + " " + str(Dec)+ "\n")
@@ -206,7 +206,7 @@ def Final_Catalina(RAdeg,Decdeg,ref_epoch,pmra,pmdec):
             getCatalinaData.plot()
             getCatalinaData.handleData(RAdeg,Decdeg)
         except: None
-    
+
 
 def FinalGAIA(ProbWD,RADec, BP_RP, Abs_g, TeffH, gmag):
     if wantGaiaHR ==True:
@@ -222,25 +222,25 @@ def FinalPanstarrs(RAdeg,Decdeg):
 def FinalASASSN(RAdeg, Decdeg, eDR3name="a"):
     radius_ASASSN = 5/3600
     if wantASASSN==True and not ("ASASSNv_lc.dat" in os.listdir(os.getcwd()) or "ASASSNg_lc.dat" in os.listdir(os.getcwd())):
-        
+
         ASASSN_name = ASASSN.isItInASASSN(eDR3name, RAdeg, Decdeg, radius_ASASSN)
         filenameG, filenameV = ASASSN.getASASSN(ASASSN_name)
-        
+
         try: ASASSN.plotVband(RAdeg,Decdeg,filenameV)
-        except: 
-            try: 
+        except:
+            try:
                 try: json_link, lightcurve_link = getASASSNweb.get_urls(RAdeg, Decdeg)
                 except: np.savetxt("ASSASNweb_empty.txt", np.array([1]))
                 getASASSNweb.get_json_info(json_link, lightcurve_link)
                 ASASSNweb.get_web_csv(lightcurve_link)
             except: None
-        
+
         try: ASASSN.plotGband(RAdeg,Decdeg,filenameG)
         except: None # NOTE for the future : I don't know if the catalogue has any G only entries
-        
+
         apphoturl=getASASSNweb.ASASSN_apphot_url(RAdeg,Decdeg)
         getASASSNweb.createShortcut(apphoturl, str(cwd)+"/")
-        
+
 
 def FinalWISE(RAdeg, Decdeg, gmag):
     if wantWISE == True and not "WISE.csv" in os.listdir(os.getcwd()) and gmag<16.6:
@@ -270,27 +270,37 @@ if __name__ == '__main__':
     # don't touch these two
     joinTESS=True
     joinK2=True
-    
+
     # What data do you want?
-    wantSDSS=True
-    wantK2=True
-    wantTess=True
-    wantZTF=True
-    wantATLASforced=True # this might take a couple of minutes as a request is queued to their server
-    wantCatalina=True
-    wantSED=True
-    wantPTF=True
-    wantPanstarrs=True
-    wantGaiaHR=True
-    wantWISE=True
-    wantNEOWISE=True # this can be long to query
-    wantASASSN=True
-    wantCDS=True
-    wantGaiaDatalink=True
-    
+    with open('flags_photometry.yml') as f:
+        phot_flags = yaml.safe_load(f)
+
+    wantSDSS=phot_flags['SDSS']['download']
+    wantK2=phot_flags['K2']['download']
+    wantTess=phot_flags['TESS']['download']
+    wantZTF=phot_flags['ZTF']['download']
+    # ATLAS might take a couple of minutes as a request is queued to their server
+    wantATLASforced=phot_flags['ATLAS']['download']
+    wantCatalina=phot_flags['Catalina']['download']
+    wantPTF=phot_flags['PTF']['download']
+    wantPanstarrs=phot_flags['PanSTARRS']['download']
+    wantWISE=phot_flags['WISE']['download']
+    # neoWISE can be long to query
+    wantNEOWISE=phot_flags['neoWISE']['download']
+    wantASASSN=phot_flags['ASASSN']['download']
+
+    # What extras are required?
+    with open('flags_extras.yml') as f:
+        extra_flags = yaml.safe_load(f)
+
+    wantSED=extra_flags['SED']['plot']
+    wantGaiaHR=extra_flags['GaiaHR']['plot']
+    wantCDS=extra_flags['CDS']['create']
+    wantGaiaDatalink=extra_flags['GaiaDatalink']['create']
+
     remove_old_dir=False  # are you sure? put twice to make sure you are positive. this will junk the contents of the created folders
     remove_old_dir=False # are you sure? put twice to make sure you are positive
-    
+
     # TESS exposure times to search for? not all are always available
     exptimes=['fast', 'short', 'long']
     t = Table.read("example.fits")
@@ -303,8 +313,8 @@ if __name__ == '__main__':
     # this can be named anything, but this place has to be a separate folder to dump files into
     os.chdir(NameOfNewDir)
     homedirectory=os.getcwd()
-    
-    
+
+
     for count, (RAdeg, Decdeg) in enumerate(zip(t['ra'].value,t['dec'].value)):
         # Many of these things rely off of Gaia metrics. These are a) to handle proper motion in search queries b) plot on the Gaia HR diagram
         # You can set these to different values if you just care about getting the data... but the options are included as they are typical things to plot
@@ -318,7 +328,9 @@ if __name__ == '__main__':
         # GaiaSourceID = YY # you need this if you want to get Gaia datalink data
         # GaiaABS_G = 0
         # Teff = 0
-        
+
+        print("### WORKING ON OBJECT %s %s ###"%(RAdeg, Decdeg))
+
         Gaia_Gmag = t['phot_g_mean_mag_corrected'].value[count]   #   the Gaia magnitude in the Gband
         ref_epoch = t['ref_epoch'].value[count]   #   the Gaia reference epoch (e.g. 2016)
         propermRA = t['pmra'].value[count]     # the Gaia proper motion in RA
@@ -328,71 +340,71 @@ if __name__ == '__main__':
         GaiaSourceID = t['source_id'].value[count]    # Gaia source ID. Working as of DR3
         GaiaABS_G = t['M_G'].value[count]   # Absolute magnitude in Gaia G
         Teff = t['teff_H'].value[count]     # Teff of the object
-        
-        
+
+
 
         RA,Dec = miscAstro.ra_dec_deg_to_hr(RAdeg,Decdeg)
-        
+
         if Decdeg<0:    RADec=str(RA) + " " + str(Dec)
         else:  RADec=str(RA) + " +" + str(Dec)
-        
+
         folder = os.getcwd()+"/"+str(RADec)
-        
+
         try:
             if remove_old_dir==True:     miscAstro.remDir(folder)
         except:None
-        
+
         # make new dir and go to dir. if this breaks, dir already exists and we enter current dir
         try: os.mkdir(str(RADec))
         except: None
         os.chdir(folder)
-        
+
         try: os.mkdir("files")
         except: None
-        
+
         cwd=os.getcwd()
-        
+
         # bring back all files I neatened
         if remove_old_dir==False:
             for filename2 in os.listdir(cwd+"/files/"):
                 Path(cwd+"/files/"+filename2).rename(cwd+"/"+filename2)
-        
-        
+
+
         np.savetxt('TargetRADecDegrees.dat', np.array([RAdeg,Decdeg]).T)
-        
-        
+
+
         #print("We have ", str(len(t['ra'].value) - count), "out of ", str(len(t['ra'].value)), "remaining (progress = ", str(np.round(100*count/len(t['ra'].value),2)), "% )")
         #print(colored((RA,Dec),'cyan')); print(RAdeg, Decdeg)
-        
+
         try: uv,g,r,i,z=Final_SDSS(RAdeg,Decdeg)
         except: None
-        
-        
-        
+
+
+
         p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
         p0.start()
-        
+
         p1 = Process(target = Final_phot_SED_CDS(RADec))
         p1.start()
         try:
             if wantTess == True or wantK2 == True or wantATLASforced==True:
                 obj, star_mag = checkLocalStars.find_star_in_gaia_edr3(RAdeg,Decdeg) #added in case there is a formatting mismatch, otherwise you could use Nicola's catalogue
         except: None
-        
+
         if wantTess==True:
             returnClause = checkLocalStars.localTESS(obj,star_mag)
             if returnClause == "Good":
                 p2 = Process(target = Final_TESS(RADec,Gaia_Gmag))
                 p2.start()
                 joinTESS=True
-        
+
         if wantK2==True:
             returnClause = checkLocalStars.localK2(obj,star_mag)
             if returnClause == "Good":
                 p3 = Process(target = Final_K2(RADec))
                 p3.start()
                 joinK2=True
-        
+
         if Gaia_Gmag >12.5: # saturation limit
             # note that I put my own quality control cut on the ztf data by airmass and zeropoint rms
             p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec))
@@ -406,45 +418,45 @@ if __name__ == '__main__':
                         #p5 = Process(target = Final_ATLAS_forced(RAdeg,Decdeg,RA,Dec,reference_epoch=2016, pmra=-146.303, pmdec=-155.864))
                         p5.start()
         except: None
-        
+
         if Gaia_Gmag >= 13: # saturation limit
             p6 = Process(target = Final_Catalina(RAdeg,Decdeg, ref_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec)) # bit larger since not as good astrometric solution
             p6.start()
-        
+
         if Gaia_Gmag >= 12: # saturation limit
             p7 = Process(target = FinalPanstarrs(RAdeg, Decdeg))
             p7.start()
-        
+
         #if Gaia_Gmag >= 11: # saturation limit
         #    p8 = Process(target = FinalASASSN(RAdeg, Decdeg, eDR3name="EDR3 "+str(GaiaSourceID)))
         #    p8.start()
-        
+
         p9 = Process(target = FinalWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
         p9.start()
-        
+
         # plot gaia hr
         try:
             p10 = Process(target = FinalGAIA(probWD, RADec, BPRP, GaiaABS_G, Teff, gmag=Gaia_Gmag))
             p10.start()
         except: None
-        
+
         # get CDS shortcut
         p11 = Process(target = FinalCDS(RAdeg,Decdeg))
         p11.start()
-        
-        
+
+
         p0.join()
         p1.join() # these make it so that the bunch terminates when the final process pX does
-        if wantTess==True and joinTESS==True:  
+        if wantTess==True and joinTESS==True:
             try: p2.join()
             except: None
-        if wantK2==True  and joinK2==True:  
+        if wantK2==True  and joinK2==True:
             try: p3.join()
             except: None
         if Gaia_Gmag >12.5: # saturation limit
             try: p4.join()
             except: None
-        if wantATLASforced==True:  
+        if wantATLASforced==True:
             try: p5.join()
             except: None
         if Gaia_Gmag >= 13: # saturation limit
@@ -457,20 +469,20 @@ if __name__ == '__main__':
         #    try: p8.join()
         #    except: None
         p9.join()
-        
-        
-        
+
+
+
         pX = Process(target=plotEverything.plot());       pX.start()
-        
+
         if wantGaiaDatalink==True:
             try:
                 source_id_input=str(GaiaSourceID)
                 GaiaDatalink.getData(source_id_input)
             except: None
-        
-        
-        
-        
+
+
+
+
         # here is an example period search following the bare basics. you need to import the file you want.
         try:
             from astropy.timeseries import LombScargle
@@ -485,47 +497,47 @@ if __name__ == '__main__':
             plt.ylabel("Power")
             plt.savefig("ZTFperiodogram.png")
             plt.clf()
-            
-            
+
+
             # fold data at the highest peak... this may not be the true frequency of the system
             best_frequency = frequency[power==np.amax(power)]
             period=1/best_frequency.value[0]
             plt.errorbar((MJD%period)/period, mag, yerr=mage, fmt='.k')
             plt.savefig("ZTFphasefold.png")
             plt.clf()
-            
+
             # and if you want to get into periodograms and period searching more seriously, PLEASE read these
             # https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
             # https://iopscience.iop.org/article/10.3847/1538-4365/aab766     <- particularly this one. it's fantastic
-            
+
             # lastly I recommend investigating the BLS search, typical for eclipsing systems/exoplanets
-        
+
         except: None
-        
+
 
         # neaten file list
         exceptions=["files", "GaiaLoc.png", "PhotSED.pdf", "SDSS.png", "ZTFphot.pdf",
                     "AllPhot.png", "CDS_objectofinterest.url"]
-    
+
         for filename in os.listdir(cwd):
             if filename not in exceptions:
                 Path(cwd+"/"+filename).rename(cwd+"/files/"+filename)
-                
-        
+
+
 
         # delete all memory of variables so I never get confused with next loop. variables defined locally in a function are never saved globally
         try: del respAll
         except: None
         try: del respZTF
         except: None
-        
+
         del RA; del Dec
         del RAdeg; del Decdeg
         del folder; del RADec
-        
+
         try: del uv; del g; del r; del i; del z
         except: None
-        
+
         try: del p1
         except: None
         try: del p2
@@ -548,8 +560,8 @@ if __name__ == '__main__':
         except: None
         try: del p11
         except: None
-        
-    
+
+
         # back to the start
         os.chdir(homedirectory)
 
@@ -559,10 +571,9 @@ if __name__ == '__main__':
 # asassn - 30s
 # goto - 60s, maybe changed in data out of comissioning
 # gaia - 4s
-# ztf - 
-# crts - 
-# asassn - 
+# ztf -
+# crts -
+# asassn -
 
 # todo:
 # query cds references, e.g.: http://simbad.u-strasbg.fr/simbad/sim-id-refs?submit=sort+references&Ident=SDSS%20J053332.05%2B020911.5
-

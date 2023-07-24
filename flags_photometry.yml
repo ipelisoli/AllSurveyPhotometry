@@ -1,0 +1,32 @@
+SDSS:
+  download: True
+
+K2:
+  download: True
+
+TESS:
+  download: True
+
+ZTF:
+  download: True
+
+ATLAS:
+  download: True
+
+Catalina:
+  download: True
+
+PTF:
+  download: True
+
+PanSTARRS:
+  download: False
+
+WISE:
+  download: True
+
+neoWISE:
+  download: True
+
+ASASSN:
+  download: True

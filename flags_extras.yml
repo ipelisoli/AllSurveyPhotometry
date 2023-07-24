@@ -1,0 +1,11 @@
+SED:
+  plot: False
+
+GaiaHR:
+  plot: False
+
+CDS:
+  create: False
+
+GaiaDatalink:
+  create: False
