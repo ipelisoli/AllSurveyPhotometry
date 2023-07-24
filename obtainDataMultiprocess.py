@@ -62,30 +62,29 @@ warnings.filterwarnings("ignore")
 
 
 
-def Final_SDSS(RAdeg, Decdeg):
+def Final_SDSS(RAdeg, Decdeg, rad=1.):
     # get_SDSS
-    if wantSDSS==True: # this is globally set at the start
-        rad=1/60 #arcmin
-        scale=0.1
-        try:
-            query=SDSSclass.get_SDSSquery(RAdeg,Decdeg,rad)
-            photSDSS = SDSSclass.search_SDSS_phot(query)
+    rad=rad/60. #arcmin
+    scale=0.1
+    try:
+        query=SDSSclass.get_SDSSquery(RAdeg,Decdeg,rad)
+        photSDSS = SDSSclass.search_SDSS_phot(query)
 
-            if photSDSS:
-                spec=SDSSclass.search_SDSS_spectrum(query, RAdeg, Decdeg)
-                if not spec=="NoSPEC":
-                    SDSSclass.plot_SDSS_spec("spec",spec)
+        if photSDSS:
+            spec=SDSSclass.search_SDSS_spectrum(query, RAdeg, Decdeg)
+            if not spec=="NoSPEC":
+                SDSSclass.plot_SDSS_spec("spec",spec)
 
 
-                uv,g,r,i,z=SDSSclass.get_SDSSmagsUGRIZ("ugriz",RAdeg, Decdeg)
+            uv,g,r,i,z=SDSSclass.get_SDSSmagsUGRIZ("ugriz",RAdeg, Decdeg)
 
-                url=SDSSclass.get_findingchart_url(RAdeg,Decdeg,scale)
-                SDSSclass.createShortcut(url, str(cwd)+"/")
-                SDSSclass.scrapeImageFromShortcut(url)
-                return uv,g,r,i,z
-            else:
-                return "a", "a", "a", "a", "a"
-        except: None
+            url=SDSSclass.get_findingchart_url(RAdeg,Decdeg,scale)
+            SDSSclass.createShortcut(url, str(cwd)+"/")
+            SDSSclass.scrapeImageFromShortcut(url)
+            return uv,g,r,i,z
+        else:
+            return "a", "a", "a", "a", "a"
+    except: None
 
 
 def Final_phot_SED_CDS(RADec):
@@ -276,6 +275,8 @@ if __name__ == '__main__':
         phot_flags = yaml.safe_load(f)
 
     wantSDSS=phot_flags['SDSS']['download']
+    radSDSS=float(phot_flags['SDSS']['radius'])
+
     wantK2=phot_flags['K2']['download']
     wantTess=phot_flags['TESS']['download']
     wantZTF=phot_flags['ZTF']['download']
@@ -382,16 +383,16 @@ if __name__ == '__main__':
                 Path(cwd+"/files/"+filename2).rename(cwd+"/"+filename2)
 
 
-        np.savetxt('TargetRADecDegrees.dat', np.array([RAdeg,Decdeg]).T)
+        #np.savetxt('TargetRADecDegrees.dat', np.array([RAdeg,Decdeg]).T)
 
 
         #print("We have ", str(len(t['ra'].value) - count), "out of ", str(len(t['ra'].value)), "remaining (progress = ", str(np.round(100*count/len(t['ra'].value),2)), "% )")
         #print(colored((RA,Dec),'cyan')); print(RAdeg, Decdeg)
 
-        try: uv,g,r,i,z=Final_SDSS(RAdeg,Decdeg)
-        except: None
-
-
+        if wantSDSS:
+            print("Querying SDSS...")
+            uv,g,r,i,z=Final_SDSS(RAdeg,Decdeg,radSDSS)
+            print(uv,g,r,i,z)
 
         p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
         p0.start()

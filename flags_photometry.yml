@@ -1,5 +1,6 @@
 SDSS:
   download: True
+  radius: 3.
 
 K2:
   download: True
