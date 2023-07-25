@@ -251,10 +251,10 @@ def FinalWISE(RAdeg, Decdeg, gmag):
             WISE.saveFilters(RAdeg,Decdeg, gmag)
         except: None
 
-def FinalNEOWISE(RAdeg, Decdeg, gmag):
+def FinalNEOWISE(RAdeg, Decdeg, radius):
     try:
-        NEOWISE.queryWise(RAdeg,Decdeg)
-        NEOWISE.saveFilters(RAdeg,Decdeg, gmag)
+        NEOWISE.queryWise(RAdeg, Decdeg, radius)
+        NEOWISE.saveFilters(RAdeg, Decdeg)
     except Exception as e: print("error neowise"); print(e)
 
 def FinalCDS(RAdeg, Decdeg):
@@ -288,8 +288,11 @@ if __name__ == '__main__':
     wantPTF=phot_flags['PTF']['download']
     wantPanstarrs=phot_flags['PanSTARRS']['download']
     wantWISE=phot_flags['WISE']['download']
+    
     # neoWISE can be long to query
     wantNEOWISE=phot_flags['neoWISE']['download']
+    radNEOWISE=phot_flags['neoWISE']['radius']
+
     wantASASSN=phot_flags['ASASSN']['download']
 
     # What extras are required?
@@ -365,6 +368,9 @@ if __name__ == '__main__':
 
         print("### WORKING ON OBJECT %s ###\n"%jname)
 
+        print("Gaia ID: %s" %GaiaSourceID)
+        print("Gaia G: %5.2f\n" %Gaia_Gmag)
+
         try:
             if remove_old_dir==True:     miscAstro.remDir(folder)
         except:None
@@ -404,7 +410,7 @@ if __name__ == '__main__':
 
         if wantNEOWISE:
             print("Querying neoWISE...")
-            p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
+            p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, radNEOWISE))
             p0.start()
 
         if wantSED:
