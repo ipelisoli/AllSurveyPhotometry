@@ -363,7 +363,7 @@ if __name__ == '__main__':
 
         folder = os.getcwd()+"/"+str(jname)
 
-        print("### WORKING ON OBJECT %s ###"%jname)
+        print("### WORKING ON OBJECT %s ###\n"%jname)
 
         try:
             if remove_old_dir==True:     miscAstro.remDir(folder)
@@ -374,15 +374,15 @@ if __name__ == '__main__':
         except: None
         os.chdir(folder)
 
-        try: os.mkdir("files")
-        except: None
+        #try: os.mkdir("files")
+        #except: None
 
         cwd=os.getcwd()
 
         # bring back all files I neatened
         if remove_old_dir==False:
-            for filename2 in os.listdir(cwd+"/files/"):
-                Path(cwd+"/files/"+filename2).rename(cwd+"/"+filename2)
+            for filename2 in os.listdir(cwd+"/"):
+                Path(cwd+"/"+filename2).rename(cwd+"/"+filename2)
 
 
         #np.savetxt('TargetRADecDegrees.dat', np.array([RAdeg,Decdeg]).T)
@@ -547,7 +547,7 @@ if __name__ == '__main__':
 
         for filename in os.listdir(cwd):
             if filename not in exceptions:
-                Path(cwd+"/"+filename).rename(cwd+"/files/"+filename)
+                Path(cwd+"/"+filename).rename(cwd+"/"+filename)
 
 
 
