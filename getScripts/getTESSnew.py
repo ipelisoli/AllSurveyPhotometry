@@ -42,44 +42,43 @@ class TESS(object):
                 all_tpf = search_result.download_all("hard")
                 all_lcs=[]
 
-                if all_tpf:  # if this is not empty
-                    for tpf in all_tpf:
-                        bkg = tpf.get_bkg_lightcurve()
-                        for z in range(3):
-                            medianbkg=np.median(bkg.flux).value
-                            sigmabkg=np.std(bkg.flux).value
-                            mask=((bkg.flux.value > (medianbkg-3.5*sigmabkg)) & (bkg.flux.value < (medianbkg+2*sigmabkg)))
-                            bkg=bkg[mask]
-                            tpf=tpf[mask]
+                for tpf in all_tpf:
+                    bkg = tpf.get_bkg_lightcurve()
+                    for z in range(3):
+                        medianbkg=np.median(bkg.flux).value
+                        sigmabkg=np.std(bkg.flux).value
+                        mask=((bkg.flux.value > (medianbkg-3.5*sigmabkg)) & (bkg.flux.value < (medianbkg+2*sigmabkg)))
+                        bkg=bkg[mask]
+                        tpf=tpf[mask]
 
-                        aper = tpf.create_threshold_mask()
-                        raw_lc = tpf.to_lightcurve(aperture_mask=aper)
-                        raw_lc = raw_lc.remove_nans()
-                        try:
-                            lc=raw_lc.to_corrector(method="sff").correct() #cbv #pld
-                        except:
-                            try:
-                                lc=raw_lc.to_corrector(method="cbv").correct()
-                            except:
-                                None
-                        try:
-                            lc=lc.remove_outliers(sigma=5)
-                            lc=lc.normalize()
-
-                            all_lcs.append(lc)
-                        except: None
-
+                    aper = tpf.create_threshold_mask()
+                    raw_lc = tpf.to_lightcurve(aperture_mask=aper)
+                    raw_lc = raw_lc.remove_nans()
                     try:
-                        print("Stitching light curve...")
-                        lc_obj=lk.LightCurveCollection(all_lcs).stitch()
-                        #ax=lc_obj.scatter(title=time)
-                        #ax.figure.savefig('AllLC'+str(time)+'.png')
-                        #plt.close()
-                        lcfound=True
-                        print("Success!")
+                        lc=raw_lc.to_corrector(method="sff").correct() #cbv #pld
                     except:
-                        print("Failed!")
-                        lcfound=False
+                        try:
+                            lc=raw_lc.to_corrector(method="cbv").correct()
+                        except:
+                            None
+                    try:
+                        lc=lc.remove_outliers(sigma=5)
+                        lc=lc.normalize()
+
+                        all_lcs.append(lc)
+                    except: None
+
+                try:
+                    print("Stitching light curve...")
+                    lc_obj=lk.LightCurveCollection(all_lcs).stitch()
+                    #ax=lc_obj.scatter(title=time)
+                    #ax.figure.savefig('AllLC'+str(time)+'.png')
+                    #plt.close()
+                    lcfound=True
+                    print("Success!")
+                except:
+                    print("Failed!")
+                    lcfound=False
             else:
                 print("No target pixel file found.")
                 lcfound=False

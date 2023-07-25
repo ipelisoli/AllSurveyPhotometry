@@ -120,7 +120,7 @@ def Final_TESS(RADec, radius):
     for time in exptimes:
         print("- %s cadence data:" %time)
         TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
-
+    print("\n")
 
 def Final_ZTF(RAdeg, Decdeg, RA, Dec):
     #getPTF
@@ -275,6 +275,12 @@ if __name__ == '__main__':
 
     wantTESS=phot_flags['TESS']['download']
     radTESS=float(phot_flags['TESS']['radius'])
+    # TESS exposure times to search for? not all are always available
+    exptimes=phot_flags['TESS']['exptimes']
+    for exptime in exptimes:
+        if exptime not in ['fast', 'short', 'long']:
+            print("TESS exptime not recognised; should be one or more of: fast, short, long.")
+            sys.exit()
 
     wantZTF=phot_flags['ZTF']['download']
     # ATLAS might take a couple of minutes as a request is queued to their server
@@ -302,8 +308,7 @@ if __name__ == '__main__':
     remove_old_dir=False  # are you sure? put twice to make sure you are positive. this will junk the contents of the created folders
     remove_old_dir=False # are you sure? put twice to make sure you are positive
 
-    # TESS exposure times to search for? not all are always available
-    exptimes=['fast', 'short', 'long']
+
     t = Table.read("example.fits")
 
 
