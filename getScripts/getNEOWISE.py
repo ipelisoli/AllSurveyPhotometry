@@ -37,7 +37,10 @@ class NEOWISE(object):
 
 
     def saveFilters(RAdeg,Decdeg,gmag):
-        table=Table.read('NEOWISE.csv')
+        try:
+            table=Table.read('NEOWISE.csv')
+        except FileNotFoundError:
+            return
 
         #IMPORTANT NOTE: WISE WAS A SPACECRAFT AND THE STORED TIME WAS MJD. I DO NOT KNOW THE EXACT LOCATION FOR BJD
 
