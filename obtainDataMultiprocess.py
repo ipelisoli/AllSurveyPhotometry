@@ -115,18 +115,17 @@ def Final_K2(RADec):
 
 
 
-def Final_TESS(RADec, g):
+def Final_TESS(RADec, radius):
     ########### getTESSnew  NOTE: made a limiting mag for tess of 18
-    radius_TESS = 4 # arcseconds
-    if wantTess==True:
+    if wantTESS==True:
         try: # break if g is "a", don't pass if g<18
             if g < 18: # this is globally set at the start
                 for time in exptimes:
-                    TESS.get_tess(RADec, time=time, radius=radius_TESS, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
+                    TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
                 # radius in arcsec
         except:# g is "a"
             for time in exptimes:
-                TESS.get_tess(RADec, time=time, radius=radius_TESS, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
+                TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
 
 
 
@@ -280,7 +279,10 @@ if __name__ == '__main__':
     radSDSS=float(phot_flags['SDSS']['radius'])
 
     wantK2=phot_flags['K2']['download']
-    wantTess=phot_flags['TESS']['download']
+
+    wantTESS=phot_flags['TESS']['download']
+    radTESS=float(phot_flags['TESS']['radius'])
+
     wantZTF=phot_flags['ZTF']['download']
     # ATLAS might take a couple of minutes as a request is queued to their server
     wantATLASforced=phot_flags['ATLAS']['download']
@@ -418,15 +420,15 @@ if __name__ == '__main__':
             p1.start()
 
         try:
-            if wantTess == True or wantK2 == True or wantATLASforced==True:
+            if wantTESS == True or wantK2 == True or wantATLASforced==True:
                 obj, star_mag = checkLocalStars.find_star_in_gaia_edr3(RAdeg,Decdeg) #added in case there is a formatting mismatch, otherwise you could use Nicola's catalogue
         except: None
 
-        if wantTess:
+        if wantTESS:
             print("Querying TESS...")
             returnClause = checkLocalStars.localTESS(obj,star_mag)
             if returnClause:
-                p2 = Process(target = Final_TESS(RADec,Gaia_Gmag))
+                p2 = Process(target = Final_TESS(RADec,radTESS))
                 p2.start()
                 joinTESS=True
 
@@ -480,7 +482,7 @@ if __name__ == '__main__':
         p0.join()
         if wantSED:
             p1.join() # these make it so that the bunch terminates when the final process pX does
-        if wantTess==True and joinTESS==True:
+        if wantTESS==True and joinTESS==True:
             try: p2.join()
             except: None
         if wantK2==True  and joinK2==True:
