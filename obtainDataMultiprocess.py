@@ -102,15 +102,16 @@ def Final_phot_SED_CDS(RADec):
 
 def Final_K2(RADec, radius):
     # getK2
-    split=RADec.split(":")
-    split2=split[2].split(" ")
+    #split=RADec.split(":")
+    #split2=split[2].split(" ")
     # kepler coverage: RA=19h22m40s and Dec=+44˚30'00"(J2000)
 
-    if int(split[0]) >=18 and int(split[0]) <=20 and int(split2[1]) >= 40 and int(split2[1])<=50: # this is where K2 imaged
-        for time in exptimes:
-            K2.get_K2(RADec, exptime=time, radius=radius, ignore_any_dodgyness=False) # radius in arcsec
-    else:
-        print("Not in the K2 footprint.\n")
+    #if int(split[0]) >=18 and int(split[0]) <=20 and int(split2[1]) >= 40 and int(split2[1])<=50: # this is where K2 imaged
+    # some issue here, got no data for something I know is in K2
+    for time in exptimes:
+        K2.get_K2(RADec, exptime=time, radius=radius, ignore_any_dodgyness=False) # radius in arcsec
+    #else:
+    #    print("Not in the K2 footprint.\n")
 
 
 
@@ -335,15 +336,15 @@ if __name__ == '__main__':
         # GaiaABS_G = 0
         # Teff = 0
 
-        Gaia_Gmag = t['phot_g_mean_mag_corrected'].value[count]   #   the Gaia magnitude in the Gband
+        Gaia_Gmag = t['phot_g_mean_mag'].value[count]   #   the Gaia magnitude in the Gband
         ref_epoch = t['ref_epoch'].value[count]   #   the Gaia reference epoch (e.g. 2016)
         propermRA = t['pmra'].value[count]     # the Gaia proper motion in RA
         propermDec = t['pmdec'].value[count]   # the Gaia proper motion in Dec
-        probWD = t['Pwd'].value[count]    # This is specific for white dwarfs and is just for the title of a graph. set this equal to 0 if you do not care about WDs. I use it as the probability of a white dwarf
-        BPRP = t['BP_RP'].value[count]    # Gaia BP-RP
+        probWD = 'N/A'#t['Pwd'].value[count]    # This is specific for white dwarfs and is just for the title of a graph. set this equal to 0 if you do not care about WDs. I use it as the probability of a white dwarf
+        BPRP = t['bp_rp'].value[count]    # Gaia BP-RP
         GaiaSourceID = t['source_id'].value[count]    # Gaia source ID. Working as of DR3
-        GaiaABS_G = t['M_G'].value[count]   # Absolute magnitude in Gaia G
-        Teff = t['teff_H'].value[count]     # Teff of the object
+        #GaiaABS_G = t['M_G'].value[count]   # Absolute magnitude in Gaia G
+        #Teff = t['teff_H'].value[count]     # Teff of the object
 
 
 
