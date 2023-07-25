@@ -117,16 +117,8 @@ def Final_K2(RADec):
 
 def Final_TESS(RADec, radius):
     ########### getTESSnew  NOTE: made a limiting mag for tess of 18
-    if wantTESS==True:
-        try: # break if g is "a", don't pass if g<18
-            if g < 18: # this is globally set at the start
-                for time in exptimes:
-                    TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
-                # radius in arcsec
-        except:# g is "a"
-            for time in exptimes:
-                TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
-
+    for time in exptimes:
+        TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
 
 
 def Final_ZTF(RAdeg, Decdeg, RA, Dec):
