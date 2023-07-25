@@ -100,18 +100,17 @@ def Final_phot_SED_CDS(RADec):
     except: None
 
 
-def Final_K2(RADec):
+def Final_K2(RADec, radius):
     # getK2
-    search_radius_K2 = 4 # arcsec
-    if wantK2==True: # this is globally set at the start
-        split=RADec.split(":")
-        split2=split[2].split(" ")
-        # kepler coverage: RA=19h22m40s and Dec=+44˚30'00"(J2000)
+    split=RADec.split(":")
+    split2=split[2].split(" ")
+    # kepler coverage: RA=19h22m40s and Dec=+44˚30'00"(J2000)
 
-        if int(split[0]) >=18 and int(split[0]) <=20 and int(split2[1]) >= 40 and int(split2[1])<=50: # this is where K2 imaged
-            for time in exptimes:
-                K2.get_K2(RADec, exptime=time, radius=4, ignore_any_dodgyness=False) # radius in arcsec
-        else: None #print("Out of range of K2", RADec)
+    if int(split[0]) >=18 and int(split[0]) <=20 and int(split2[1]) >= 40 and int(split2[1])<=50: # this is where K2 imaged
+        for time in exptimes:
+            K2.get_K2(RADec, exptime=time, radius=radius, ignore_any_dodgyness=False) # radius in arcsec
+    else:
+        print("Not in the K2 footprint.\n")
 
 
 
@@ -272,6 +271,7 @@ if __name__ == '__main__':
     radSDSS=float(phot_flags['SDSS']['radius'])
 
     wantK2=phot_flags['K2']['download']
+    radK2=float(phot_flags['K2']['radius'])
 
     wantTESS=phot_flags['TESS']['download']
     radTESS=float(phot_flags['TESS']['radius'])
@@ -430,10 +430,11 @@ if __name__ == '__main__':
                 p2.start()
                 joinTESS=True
 
-        if wantK2==True:
+        if wantK2:
+            print("Querying K2...")
             returnClause = checkLocalStars.localK2(obj,star_mag)
-            if returnClause == "Good":
-                p3 = Process(target = Final_K2(RADec))
+            if returnClause:
+                p3 = Process(target = Final_K2(RADec,radK2))
                 p3.start()
                 joinK2=True
 
@@ -476,8 +477,8 @@ if __name__ == '__main__':
         p11 = Process(target = FinalCDS(RAdeg,Decdeg))
         p11.start()
 
-
-        p0.join()
+        if wantNEOWISE:
+            p0.join()
         if wantSED:
             p1.join() # these make it so that the bunch terminates when the final process pX does
         if wantTESS==True and joinTESS==True:
