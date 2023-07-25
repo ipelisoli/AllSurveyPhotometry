@@ -71,18 +71,23 @@ class checkLocalStars(object):
 
 
         if result_K2_MASSIVE:
-            if np.all(star_mag < result_K2['Gmag']-0.5) and star_mag<=18 and np.all(result_K2_MASSIVE['Gmag'] > 10):  # if it is easily the brightest star there
-                #print("passed checks with other stars")
-                return "Good"
-            elif np.all(star_mag < result_K2['Gmag']+0.5) and star_mag<=18 and np.all(result_K2_MASSIVE['Gmag'] > 10): # elif it is half a mag brighter than the others in the local area
-                #print("maybe, take care for K2")
-                return "Maybe"
-            else: # don't try, too much faff
-                #print("Did not pass checkLocalStars.py check for K2, so I will not query K2")
-                return "No"
+            if star_mag<=18:
+                if np.all(result_K2_MASSIVE['Gmag'] > 10):
+                    if np.all(star_mag < result_K2['Gmag']-1.0): # if it is easily the brightest star there
+                        print("Crowding ok: brightest star in the field.")
+                        return True
+                    else:
+                        print("Warning! K2 data might be contaminated by nearby stars.")
+                        return True
+                else:
+                    print("Warning! K2 data might be contaminated by bright star.")
+                    return True
+            else: # don't try, too much faff if dimmer than 18 for little gain
+                print("G < 18, too faint for K2.")
+                return False
         else:
-            #print("only star, fine to go");
-            return "Good"
+            print("No crowding issues: only star in the field.")
+            return True
 
 
 
