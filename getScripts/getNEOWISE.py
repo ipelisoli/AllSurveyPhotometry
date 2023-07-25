@@ -59,7 +59,7 @@ class NEOWISE(object):
             bjd=miscAstro.jd_corr(mjd,RAdeg,Decdeg,loc=EarthLocation.of_site("lapalma")).value
             w2mag=table['w2mpro'][mask2]
             w2mage=table['w2sigmpro'][mask2]
-            np.savetxt("NEOWISE_W2.csv", np.array([bjd, w1mag, w1mage]).T)
+            np.savetxt("NEOWISE_W2.csv", np.array([bjd, w2mag, w2mage]).T)
 
         except FileNotFoundError:
             return
