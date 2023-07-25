@@ -126,14 +126,19 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec):
     #getPTF
     radius_ZTF = 2.5/3600   #  arcseconds in degrees
     if Decdeg > -34:
-        if wantPTF==True: # this is globally set at the start
+        if wantPTF: # this is globally set at the start
+            print("Querying PTF...")
             PTF.queryPTF(RA,Dec)
             PTF.splitRandG_PTF()
         # getZTF
-        if wantZTF==True: # this is globally set at the start
+        if wantZTF: # this is globally set at the start
+            print("Querying ZTF...")
             urlZTF=ZTF.create_url(None, [RAdeg,Decdeg,radius_ZTF], BAD_CATFLAGS_MASK=True) # radius in deg
             try: ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
             except: None
+    else:
+        print("Querying PTF/ZTF...")
+        print("Outside of PTF/ZTF footprint!\n")
 
 
 
@@ -439,10 +444,15 @@ if __name__ == '__main__':
                 p3.start()
                 joinK2=True
 
-        if Gaia_Gmag >12.5: # saturation limit
+        if wantZTF or wantPTF:
+            if Gaia_Gmag >12.5: # saturation limit
             # note that I put my own quality control cut on the ztf data by airmass and zeropoint rms
-            p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec))
-            p4.start()
+                p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec))
+                p4.start()
+            else:
+                print("Target too bright for ZTF/PTF.")
+
+
         try:
             if Gaia_Gmag >12.5 and Decdeg>=-45: # saturation limit
                 if wantATLASforced==True:
