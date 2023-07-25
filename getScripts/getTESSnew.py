@@ -25,19 +25,16 @@ plt.ioff()
 
 class TESS(object):
     def get_tess(RADec, time, radius=5, ignore_any_dodgyness=False):
+        print("Searching for light curve...")
         search_result_lc=lk.search_lightcurve(RADec, radius=radius,author="TESS", exptime=time) # https://docs.lightkurve.org/reference/api/lightkurve.search_lightcurve.html
         lcfound=False
 
         # inspect tpf: https://docs.lightkurve.org/tutorials/1-getting-started/interactively-inspecting-data.html
-        if len(search_result_lc)==0:
+        if not search_result_lc:
+            print("No light curve found, searching for target pixel file...")
             search_result = lk.search_targetpixelfile(RADec, mission="TESS", exptime=time)
             if search_result:
-                #print(search_result)
-                try:
-                    all_tpf = search_result.download_all("hard")
-                except Exception as e:
-                    print("YIKES");  print(e)
-                    all_tpf=search_result[0].download("hard")    # THIS IS BAD. I think it only comes in when there's a ram issue
+                all_tpf = search_result.download_all("hard")
                 all_lcs=[]
 
                 if all_tpf:  # if this is not empty

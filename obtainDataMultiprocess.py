@@ -118,6 +118,7 @@ def Final_K2(RADec):
 def Final_TESS(RADec, radius):
     ########### getTESSnew  NOTE: made a limiting mag for tess of 18
     for time in exptimes:
+        print("- %s cadence data:" %time)
         TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
 
 
