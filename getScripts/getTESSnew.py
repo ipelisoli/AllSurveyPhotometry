@@ -26,30 +26,24 @@ plt.ioff()
 class TESS(object):
     def get_tess(RADec, time, radius=5, ignore_any_dodgyness=False):
         print("Searching for light curve...")
-        search_result_lc=lk.search_lightcurve(RADec, radius=radius,author="TESS", exptime=time) # https://docs.lightkurve.org/reference/api/lightkurve.search_lightcurve.html
-        lcfound=False
+        # https://docs.lightkurve.org/reference/api/lightkurve.search_lightcurve.html
+        search_result_lc=lk.search_lightcurve(RADec, radius=radius,author="TESS", exptime=time)
 
-        # inspect tpf: https://docs.lightkurve.org/tutorials/1-getting-started/interactively-inspecting-data.html
-        if not search_result_lc:
+        if search_result_lc:
+            lc_obj=search_result_lc.stitch().remove_outliers().remove_nans()   # the flux here is meant to automatically be PDCSAP
+            lcfound=True
+
+        else:
             print("No light curve found, searching for target pixel file...")
             search_result = lk.search_targetpixelfile(RADec, mission="TESS", exptime=time)
             if search_result:
+                # inspect tpf: https://docs.lightkurve.org/tutorials/1-getting-started/interactively-inspecting-data.html
+                print("Target pixel file found, performing photometry...")
                 all_tpf = search_result.download_all("hard")
                 all_lcs=[]
 
                 if all_tpf:  # if this is not empty
                     for tpf in all_tpf:
-# =============================================================================
-#                         print("###################################")
-#                         print(tpf)
-#                         print(tpf.flux.value)
-#
-#                         masked=tpf.flux_err.value > 0
-#                         print(masked)
-#                         print(len(tpf))
-#                         #tpf=tpf[tpf.flux_err.value > 0]
-# =============================================================================
-                        #try:
                         bkg = tpf.get_bkg_lightcurve()
                         for z in range(3):
                             medianbkg=np.median(bkg.flux).value
@@ -57,8 +51,6 @@ class TESS(object):
                             mask=((bkg.flux.value > (medianbkg-3.5*sigmabkg)) & (bkg.flux.value < (medianbkg+2*sigmabkg)))
                             bkg=bkg[mask]
                             tpf=tpf[mask]
-
-
 
                         aper = tpf.create_threshold_mask()
                         raw_lc = tpf.to_lightcurve(aperture_mask=aper)
@@ -70,7 +62,6 @@ class TESS(object):
                                 lc=raw_lc.to_corrector(method="cbv").correct()
                             except:
                                 None
-
                         try:
                             lc=lc.remove_outliers(sigma=5)
                             lc=lc.normalize()
@@ -79,26 +70,23 @@ class TESS(object):
                         except: None
 
                     try:
+                        print("Stitching light curve...")
                         lc_obj=lk.LightCurveCollection(all_lcs).stitch()
-                        ax=lc_obj.scatter(title=time)
-                        ax.figure.savefig('AllLC'+str(time)+'.png')
-                        plt.close()
+                        #ax=lc_obj.scatter(title=time)
+                        #ax.figure.savefig('AllLC'+str(time)+'.png')
+                        #plt.close()
                         lcfound=True
-                    except: None
-
-            elif len(search_result_lc) > 1:
-                lc_obj=search_result_lc.stitch().remove_outliers().remove_nans()   # the flux here is meant to automatically be PDCSAP
-                lcfound=True
-
-
-
-
+                        print("Success!")
+                    except:
+                        print("Failed!")
+                        lcfound=False
+            else:
+                print("No target pixel file found.")
+                lcfound=False
 
 
-
-
-            if lcfound==True:
-                np.savetxt("TESSdata_"+str(time)+".csv", np.array([lc_obj.time + 2457000- 2400000.5, lc_obj.flux, lc_obj.flux_err]).T, fmt="%s")
+            if lcfound:
+                np.savetxt("TESS_"+str(time)+".csv", np.array([lc_obj.time + 2457000- 2400000.5, lc_obj.flux, lc_obj.flux_err]).T, fmt="%s")
                 # time is output as BJD
 
 
