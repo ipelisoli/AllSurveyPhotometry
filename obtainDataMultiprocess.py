@@ -288,7 +288,7 @@ if __name__ == '__main__':
     wantPTF=phot_flags['PTF']['download']
     wantPanstarrs=phot_flags['PanSTARRS']['download']
     wantWISE=phot_flags['WISE']['download']
-    
+
     # neoWISE can be long to query
     wantNEOWISE=phot_flags['neoWISE']['download']
     radNEOWISE=phot_flags['neoWISE']['radius']
@@ -422,9 +422,10 @@ if __name__ == '__main__':
                 obj, star_mag = checkLocalStars.find_star_in_gaia_edr3(RAdeg,Decdeg) #added in case there is a formatting mismatch, otherwise you could use Nicola's catalogue
         except: None
 
-        if wantTess==True:
+        if wantTess:
+            print("Querying TESS...")
             returnClause = checkLocalStars.localTESS(obj,star_mag)
-            if returnClause == "Good":
+            if returnClause:
                 p2 = Process(target = Final_TESS(RADec,Gaia_Gmag))
                 p2.start()
                 joinTESS=True
