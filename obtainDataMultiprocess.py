@@ -220,9 +220,8 @@ def Final_Catalina(RAdeg,Decdeg,ref_epoch,pmra,pmdec,radius):
     else:
         print("Catalina data already present in directory.\n")
 
-def FinalGAIA(ProbWD,RADec, BP_RP, Abs_g, TeffH, gmag):
-    if wantGaiaHR ==True:
-        OverplotGaia.plotGaia(ProbWD,RADec, BP_RP, Abs_g, TeffH, gmag)
+def FinalGAIA(RADec, BP_RP, Abs_g, gmag):
+    OverplotGaia.plotGaia(RADec, BP_RP, Abs_g, gmag)
 
 def FinalPanstarrs(RAdeg,Decdeg,radius):
     radius_Panstarrs = radius/3600.
@@ -374,10 +373,11 @@ if __name__ == '__main__':
         ref_epoch = t['ref_epoch'].value[count]   #   the Gaia reference epoch (e.g. 2016)
         propermRA = t['pmra'].value[count]     # the Gaia proper motion in RA
         propermDec = t['pmdec'].value[count]   # the Gaia proper motion in Dec
-        probWD = 'N/A'#t['Pwd'].value[count]    # This is specific for white dwarfs and is just for the title of a graph. set this equal to 0 if you do not care about WDs. I use it as the probability of a white dwarf
+        #probWD = t['Pwd'].value[count]    # This is specific for white dwarfs and is just for the title of a graph. set this equal to 0 if you do not care about WDs. I use it as the probability of a white dwarf
         BPRP = t['bp_rp'].value[count]    # Gaia BP-RP
         GaiaSourceID = t['source_id'].value[count]    # Gaia source ID. Working as of DR3
-        #GaiaABS_G = t['M_G'].value[count]   # Absolute magnitude in Gaia G
+        parallax = t['parallax'].value[count]
+        GaiaABS_G = 5.+5.*np.log10(parallax/1000.)+Gaia_Gmag  # Absolute magnitude in Gaia G
         #Teff = t['teff_H'].value[count]     # Teff of the object
 
 
@@ -528,10 +528,14 @@ if __name__ == '__main__':
                 print("Target too faint for WISE.\n")
 
         # plot gaia hr
-        try:
-            p10 = Process(target = FinalGAIA(probWD, RADec, BPRP, GaiaABS_G, Teff, gmag=Gaia_Gmag))
-            p10.start()
-        except: None
+        if wantGaiaHR:
+            print("Making Gaia HR diagram...")
+            try:
+                p10 = Process(target = FinalGAIA(RADec, BPRP, GaiaABS_G, gmag=Gaia_Gmag))
+                p10.start()
+                print("Done!\n")
+            except:
+                print("Failed!\n")
 
         # get CDS shortcut
         p11 = Process(target = FinalCDS(RAdeg,Decdeg))
