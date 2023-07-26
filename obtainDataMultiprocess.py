@@ -256,11 +256,16 @@ def FinalASASSN(RAdeg, Decdeg, eDR3name="a"):
 
 
 def FinalWISE(RAdeg, Decdeg, gmag):
-    if wantWISE == True and not "WISE.csv" in os.listdir(os.getcwd()) and gmag<16.6:
+    if not "WISE.csv" in os.listdir(os.getcwd()):
         try:
             WISE.queryWise(RAdeg,Decdeg,ref_epoch=2020,pmra=0,pmdec=0)
-            WISE.saveFilters(RAdeg,Decdeg, gmag)
-        except: None
+            nWISE = WISE.saveFilters(RAdeg,Decdeg)
+            if nWISE is not None:
+                print("Found %d measurement(s).\n" %nWISE)
+        except:
+            print("Failed!\n")
+    else:
+        print("WISE data already present in directory.\n")
 
 def FinalNEOWISE(RAdeg, Decdeg, radius):
     try:
@@ -514,8 +519,13 @@ if __name__ == '__main__':
         #    p8 = Process(target = FinalASASSN(RAdeg, Decdeg, eDR3name="EDR3 "+str(GaiaSourceID)))
         #    p8.start()
 
-        p9 = Process(target = FinalWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
-        p9.start()
+        if wantWISE:
+            print("Checking WISE...")
+            if Gaia_Gmag<16.6:
+                p9 = Process(target = FinalWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
+                p9.start()
+            else:
+                print("Target too faint for WISE.\n")
 
         # plot gaia hr
         try:
@@ -546,13 +556,14 @@ if __name__ == '__main__':
         if Gaia_Gmag >= 13: # saturation limit
             try: p6.join()
             except: None
-        if Gaia_Gmag >= 12: # saturation limit
+        if wantPanstarrs and Gaia_Gmag >= 12: # saturation limit
             try: p7.join()
             except: None
         #if Gaia_Gmag >= 11: # saturation limit
         #    try: p8.join()
         #    except: None
-        p9.join()
+        if wantWISE and Gaia_Gmag < 16.6:
+            p9.join()
 
 
 
