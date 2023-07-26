@@ -1,5 +1,6 @@
 SED:
   plot: False
+  radius: 3.
 
 GaiaHR:
   plot: False
@@ -8,4 +9,4 @@ CDS:
   create: False
 
 GaiaDatalink:
-  create: False
+  create: True

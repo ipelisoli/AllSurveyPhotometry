@@ -3,31 +3,41 @@ SDSS:
   radius: 3.
 
 K2:
-  download: True
+  download: False
+  radius: 5.
 
 TESS:
-  download: True
+  download: False
+  radius: 5.
+  exptimes:
+    - fast
+    - short
+    - long
 
 ZTF:
   download: True
+  radius: 3.
 
 ATLAS:
   download: True
 
 Catalina:
   download: True
+  radius: 3.
 
 PTF:
   download: True
 
 PanSTARRS:
-  download: False
+  download: True
+  radius: 3.
 
 WISE:
   download: True
 
 neoWISE:
   download: True
+  radius: 3.
 
 ASASSN:
   download: True
