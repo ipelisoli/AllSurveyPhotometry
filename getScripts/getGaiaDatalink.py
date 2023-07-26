@@ -42,7 +42,7 @@ class GaiaDatalink(object):
                 file = "Gaia_RVspec.txt"
                 print("Found RV spectra.\n")
             GaiaDatalink.plot_sampled_spec(dl_out, RVS,color = 'blue', title = title, fontsize = fontsize, show_legend = False, show_grid = show_grid, linewidth = linewidth, legend = '', figsize = figsize)
-            ascii.write(file, overwrite=True)
+            ascii.write(dl_out, file, overwrite=True)
         #return dl_out
 
 

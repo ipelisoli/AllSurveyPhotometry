@@ -16,6 +16,8 @@ from pathlib import Path
 from astropy.table import Table
 from multiprocessing import Process
 from datetime import datetime
+import astropy.coordinates as coord
+from astropy.coordinates import ICRS
 
 # classes used (mine)
 from getK2 import K2
@@ -402,24 +404,13 @@ if __name__ == '__main__':
         GaiaABS_G = 5.+5.*np.log10(parallax/1000.)+Gaia_Gmag  # Absolute magnitude in Gaia G
         #Teff = t['teff_H'].value[count]     # Teff of the object
 
-
+        coo = ICRS(RAdeg*u.degree, Decdeg*u.degree)
+        jname = (f'J{coo.ra.to_string(unit=u.hourangle, sep="", precision=2, pad=True)}'f'{coo.dec.to_string(sep="", precision=1, alwayssign=True, pad=True)}')
 
         RA,Dec = miscAstro.ra_dec_deg_to_hr(RAdeg,Decdeg)
 
-        if Decdeg<0:
-            RADec=str(RA) + " " + str(Dec)
-            RAtemp = str(RA).replace(":", "")
-            RAtemp = RAtemp.ljust(9, "0")[:9]
-            DEtemp = str(Dec).replace(":", "")
-            DEtemp = DEtemp.ljust(9, "0")[:9]
-            jname = "J" + RAtemp + DEtemp
-        else:
-            RADec=str(RA) + " +" + str(Dec)
-            RAtemp = str(RA).replace(":", "")
-            RAtemp = RAtemp.ljust(9, "0")[:9]
-            DEtemp = str(Dec).replace(":", "")
-            DEtemp = DEtemp.ljust(8, "0")[:8]
-            jname = "J" + RAtemp + "+" + DEtemp
+        if Decdeg<0:    RADec=str(RA) + " " + str(Dec)
+        else:  RADec=str(RA) + " +" + str(Dec)
 
         folder = os.getcwd()+"/"+str(jname)
 
@@ -484,10 +475,13 @@ if __name__ == '__main__':
             p1 = Process(target = Final_phot_SED_CDS(RADec, radSED))
             p1.start()
 
-        try:
-            if wantTESS == True or wantK2 == True or wantATLASforced==True:
-                obj, star_mag = checkLocalStars.find_star_in_gaia_edr3(RAdeg,Decdeg) #added in case there is a formatting mismatch, otherwise you could use Nicola's catalogue
-        except: None
+        #try:
+        #    if wantTESS == True or wantK2 == True or wantATLASforced==True:
+        #        obj, star_mag = checkLocalStars.find_star_in_gaia_edr3(RAdeg,Decdeg) #added in case there is a formatting mismatch, otherwise you could use Nicola's catalogue
+        #except: None
+
+        obj=coord.SkyCoord(ra=RAdeg, dec=Decdeg, unit=(u.deg, u.deg), frame='icrs')
+        star_mag=Gaia_Gmag
 
         if wantTESS:
             print("#Checking TESS...")
@@ -496,6 +490,10 @@ if __name__ == '__main__':
                 p2 = Process(target = Final_TESS(RADec,radTESS))
                 p2.start()
                 joinTESS=True
+                if "TESS_long.dat" in os.listdir(os.getcwd()):
+                    log.write("TESS: True\n")
+            else:
+                log.write("TESS: False\n")
 
         if wantK2:
             print("#Checking K2...")
@@ -620,11 +618,28 @@ if __name__ == '__main__':
 
         if wantGaiaDatalink:
             print("Checking for additional Gaia products...")
-        #    try:
+        try:
             source_id_input=str(GaiaSourceID)
             GaiaDatalink.getData(source_id_input)
-        #    except:
-#                print("None found!\n")
+            log.write("Gaia:\n")
+            if "Gaia_XPspec.txt" in os.listdir(os.getcwd()):
+                log.write("  - XPspec: True\n")
+            else:
+                log.write("  - XPspec: False\n")
+            if "Gaia_RVspec.txt" in os.listdir(os.getcwd()):
+                log.write("  - RVspec: True\n")
+            else:
+                log.write("  - RVspec: False\n")
+            if "Gaia_G.dat" in os.listdir(os.getcwd()):
+                log.write("  - EpochPhot: True\n")
+            else:
+                log.write("  - EpochPhot: False\n")
+        except:
+            log.write("Gaia:\n")
+            log.write("  - XPspec: False\n")
+            log.write("  - RVspec: False\n")
+            log.write("  - EpochPhot: False\n")
+            print("Could not find object in Gaia DR3!\n")
 
         log.close()
         print("\n##### DONE! #####\n")

@@ -7,11 +7,9 @@ K2:
   radius: 5.
 
 TESS:
-  download: False
+  download: True
   radius: 5.
   exptimes:
-    - fast
-    - short
     - long
 
 ZTF:
