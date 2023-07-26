@@ -273,9 +273,8 @@ def FinalNEOWISE(RAdeg, Decdeg, radius):
     except Exception as e: print("error neowise"); print(e)
 
 def FinalCDS(RAdeg, Decdeg):
-    if wantCDS==True:
-        url=CDS.CDSurl(RAdeg,Decdeg)
-        CDS.createShortcut(url, str(cwd)+"/")
+    url=CDS.CDSurl(RAdeg,Decdeg)
+    CDS.createShortcut(url, str(cwd)+"/")
 
 
 
@@ -538,8 +537,11 @@ if __name__ == '__main__':
                 print("Failed!\n")
 
         # get CDS shortcut
-        p11 = Process(target = FinalCDS(RAdeg,Decdeg))
-        p11.start()
+        if wantCDS:
+            print("Creating CDS shortcut...")
+            p11 = Process(target = FinalCDS(RAdeg,Decdeg))
+            p11.start()
+            print("Done!\n")
 
         if wantNEOWISE:
             p0.join()
@@ -557,7 +559,7 @@ if __name__ == '__main__':
         if wantATLASforced:
             try: p5.join()
             except: None
-        if Gaia_Gmag >= 13: # saturation limit
+        if wantCatalina and Gaia_Gmag >= 13: # saturation limit
             try: p6.join()
             except: None
         if wantPanstarrs and Gaia_Gmag >= 12: # saturation limit
@@ -571,13 +573,15 @@ if __name__ == '__main__':
 
 
 
-        pX = Process(target=plotEverything.plot());       pX.start()
+        #pX = Process(target=plotEverything.plot());       pX.start()
 
-        if wantGaiaDatalink==True:
-            try:
-                source_id_input=str(GaiaSourceID)
-                GaiaDatalink.getData(source_id_input)
-            except: None
+        if wantGaiaDatalink:
+            print("Checking for additional Gaia products...")
+        #    try:
+            source_id_input=str(GaiaSourceID)
+            GaiaDatalink.getData(source_id_input)
+        #    except:
+#                print("None found!\n")
 
 
 
