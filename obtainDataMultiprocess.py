@@ -206,16 +206,19 @@ def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #c
 
 
 
-def Final_Catalina(RAdeg,Decdeg,ref_epoch,pmra,pmdec):
+def Final_Catalina(RAdeg,Decdeg,ref_epoch,pmra,pmdec,radius):
     # get Catalina
-    radius_catalina = 2.5/60  # passed as arcsec, so this is 3 arc seconds
-    if wantCatalina==True and not "CatalinaDataset.csv" in os.listdir(os.getcwd()): # this is globally set at the start
+    radius_catalina = radius/60  # passed as arcsec, so this is 3 arc seconds
+    if not "Catalina.csv" in os.listdir(os.getcwd()): # this is globally set at the start
         try:
             getCatalinaData.getData(RAdeg,Decdeg,ref_epoch,pmra,pmdec,radius_catalina)
             #getCatalinaData.plot()
-            getCatalinaData.handleData(RAdeg,Decdeg)
-        except: None
-
+            nCatalina = getCatalinaData.handleData(RAdeg,Decdeg)
+            print("Found %d measurement(s).\n"%nCatalina)
+        except:
+            print("No Catalina data found.\n")
+    else:
+        print("Catalina data already present in directory.\n")
 
 def FinalGAIA(ProbWD,RADec, BP_RP, Abs_g, TeffH, gmag):
     if wantGaiaHR ==True:
@@ -305,7 +308,10 @@ if __name__ == '__main__':
 
     # ATLAS might take a couple of minutes as a request is queued to their server
     wantATLASforced=phot_flags['ATLAS']['download']
+
     wantCatalina=phot_flags['Catalina']['download']
+    radCatalina=phot_flags['Catalina']['radius']
+
     wantPTF=phot_flags['PTF']['download']
     wantPanstarrs=phot_flags['PanSTARRS']['download']
     wantWISE=phot_flags['WISE']['download']
@@ -484,9 +490,13 @@ if __name__ == '__main__':
             except:
                 print("Failed!\n")
 
-        if Gaia_Gmag >= 13: # saturation limit
-            p6 = Process(target = Final_Catalina(RAdeg,Decdeg, ref_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec)) # bit larger since not as good astrometric solution
-            p6.start()
+        if wantCatalina:
+            print("#Checking Catalina...")
+            if Gaia_Gmag >= 13: # saturation limit
+                p6 = Process(target = Final_Catalina(RAdeg,Decdeg, ref_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec,radius=radCatalina)) # bit larger since not as good astrometric solution
+                p6.start()
+            else:
+                print("Target too bright for Catalina.\n")
 
         if Gaia_Gmag >= 12: # saturation limit
             p7 = Process(target = FinalPanstarrs(RAdeg, Decdeg))
@@ -513,16 +523,16 @@ if __name__ == '__main__':
             p0.join()
         if wantSED:
             p1.join() # these make it so that the bunch terminates when the final process pX does
-        if wantTESS==True and joinTESS==True:
+        if wantTESS and joinTESS:
             try: p2.join()
             except: None
-        if wantK2==True  and joinK2==True:
+        if wantK2 and joinK2:
             try: p3.join()
             except: None
-        if Gaia_Gmag >12.5: # saturation limit
+        if (wantZTF or wantPTF) and (Gaia_Gmag >12.5):
             try: p4.join()
             except: None
-        if wantATLASforced==True:
+        if wantATLASforced:
             try: p5.join()
             except: None
         if Gaia_Gmag >= 13: # saturation limit
