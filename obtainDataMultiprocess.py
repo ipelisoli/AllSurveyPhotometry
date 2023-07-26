@@ -128,7 +128,7 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
     if Decdeg > -34:
         if wantPTF: # this is globally set at the start
             print("Querying PTF...")
-            PTF.queryPTF(RA,Dec)
+            PTF.queryPTF(RA,Dec,str(radius))
             PTF.splitRandG_PTF()
         # getZTF
         if wantZTF: # this is globally set at the start
