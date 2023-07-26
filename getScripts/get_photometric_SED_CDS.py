@@ -7,7 +7,7 @@ Created on Sun May 15 16:46:40 2022
 """
 
 from astropy.io.votable import parse
-import urllib.request 
+import urllib.request
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -35,15 +35,15 @@ class photometricSED():
         url+="&-c.rs="
         url+=str(rad)
         return url
-    
-    
-    
-    
+
+
+
+
     def plot_SED(url):
         urllib.request.urlretrieve(url, "photSED.vot")
         votab = parse("photSED.vot")
-        
-        
+
+
         for table in votab.iter_tables():
             data = table.array
             #print(data)
@@ -53,12 +53,12 @@ class photometricSED():
             sedflux=data["sed_flux"]
             sedfluxe=data["sed_eflux"]
             sedfilter=data["sed_filter"]
-            
+
             #log_sedfluxe=1/np.log(10) * sedfluxe/sedflux
-        
-        
+
+
         sed_wl = 299792458/sedfreq  # c/f to get wl
-        
+
         mask=sed_wl<1400
         ra=ra[mask]
         dec=dec[mask]
@@ -67,31 +67,26 @@ class photometricSED():
         sedfluxe=sedfluxe[mask]
         sedfilter=sedfilter[mask]
         sed_wl=sed_wl[mask]
-        
+
         unique_filt = np.unique(sedfilter)
-        
+
         colours=[]
         for i in unique_filt:
             colours.append(np.random.rand(3,))
-        
+
         plt.clf()
         for count, filt in enumerate(sedfilter):
             a=np.argwhere(unique_filt==filt)[0]
             col=colours[np.argwhere(unique_filt==filt)[0][0]]
             plt.errorbar(sed_wl[count], (sedflux[count]), yerr=sedfluxe[count], fmt='.', c=col,label=sedfilter[count])
-            
-            
+
+
         plt.grid()
         plt.xlabel("Wavelength [nm]")
         plt.ylabel("log Flux [Jy]")
         plt.yscale('log')
-        plt.savefig("PhotSED.pdf")
+        plt.savefig("photSED.pdf")
         #plt.legend()
         plt.clf()
-        
-        np.savetxt("SED_CDS.csv", np.array([sed_wl, sedflux, sedfluxe, sedfilter ]).T, fmt="%s")
-    
 
-
-
-
+        np.savetxt("photSED.csv", np.array([sed_wl, sedflux, sedfluxe, sedfilter ]).T, fmt="%s")

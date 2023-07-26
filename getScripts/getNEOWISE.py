@@ -30,10 +30,11 @@ class NEOWISE(object):
                                                             radius=radius * u.arcsec, catalog="neowiser_p1bs_psd",
                                                             selcols="ra,dec,mjd,w1mpro,w1sigmpro,w2mpro,w2sigmpro") # these selcols are ignored only here?
         if (len(t) > 0):
-            print("Found neoWISE data: %d measurement(s).\n" %len(t))
             t.write('NEOWISE.csv', overwrite=True)
+            return len(t)
         else:
             print("No neoWISE data found.\n")
+            return None
 
 
     def saveFilters(RAdeg,Decdeg):

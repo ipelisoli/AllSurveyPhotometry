@@ -82,18 +82,20 @@ def Final_SDSS(RAdeg, Decdeg, rad=1.):
 
             url=SDSSclass.get_findingchart_url(RAdeg,Decdeg,scale)
             SDSSclass.createShortcut(url, str(cwd)+"/")
-            SDSSclass.scrapeImageFromShortcut(url)
+            #SDSSclass.scrapeImageFromShortcut(url)
             return uv,g,r,i,z,fspec
         else:
             print("No SDSS data found.\n")
+            log.write("  - phot: False\n")
+            log.write("  - spec: False\n")
             return None
     except:
         print("Warning! SDSS query failed.\n")
 
 
-def Final_phot_SED_CDS(RADec):
+def Final_phot_SED_CDS(RADec, radius):
     # get_photometric_SED_CDS
-    search_radius_SED = 3 # arcsec
+    search_radius_SED = radius # arcsec
     try:
         url=photometricSED.get_url_CDS(RADec, rad=search_radius_SED)
         photometricSED.plot_SED(url)
@@ -131,9 +133,11 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
             PTF.queryPTF(RA,Dec,str(radius))
             nPTF = PTF.splitRandG_PTF()
             if nPTF:
+                log.write("PTF: %d\n"%nPTF)
                 print("Found %d measurement(s).\n"%nPTF)
             else:
                 print("No data found.\n")
+                log.write("PTF: 0\n")
         # getZTF
         if wantZTF: # this is globally set at the start
             print("#Checking ZTF...")
@@ -141,11 +145,14 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
             try:
                 nZTF = ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
                 if nZTF > 0:
+                    log.write("ZTF: %d\n"%nZTF)
                     print("Found %d measurement(s).\n"%nZTF)
                 else:
                     print("No data found.\n")
+                    log.write("ZTF: 0\n")
             except:
                 print("No data found.\n")
+                log.write("ZTF: 0\n")
     else:
         print("#Checking PTF/ZTF...")
         print("Outside of PTF/ZTF footprint!\n")
@@ -196,9 +203,11 @@ def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #c
                 if minimumMJD==50000:
                     nATLAS = getATLASforcedPHOT.plot_and_save_data(a,"FirstTime")
                     print("Found %d measurements.\n" %nATLAS)
+                    log.write("ATLAS: %d\n" %nATLAS)
                 else:
-                    getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
+                    nATLAS = getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
                     print("Found %d measurements.\n" %nATLAS)
+                    log.write("ATLAS: %d\n" %nATLAS)
 
     except:
         with open("../../list_of/bad_atlas.txt", "a") as atlasfile:
@@ -215,8 +224,10 @@ def Final_Catalina(RAdeg,Decdeg,ref_epoch,pmra,pmdec,radius):
             #getCatalinaData.plot()
             nCatalina = getCatalinaData.handleData(RAdeg,Decdeg)
             print("Found %d measurement(s).\n"%nCatalina)
+            log.write("Catalina: %d\n"%nCatalina)
         except:
             print("No Catalina data found.\n")
+            log.write("Catalina: 0\n")
     else:
         print("Catalina data already present in directory.\n")
 
@@ -228,8 +239,11 @@ def FinalPanstarrs(RAdeg,Decdeg,radius):
     getPanstarrs.getAllData(RAdeg,Decdeg, rad=radius_Panstarrs)
     nPS = getPanstarrs.getPanstarrsLCs(RAdeg,Decdeg)
     if nPS is not None:
+        log.write("PanSTARRS: %d\n"%nPS)
         print("Found %d measurement(s).\n" %nPS)
     #getPanstarrs.getPanstarrsMeanMags()
+    else:
+        log.write("PanSTARRS: 0\n")
 
 def FinalASASSN(RAdeg, Decdeg, eDR3name="a"):
     radius_ASASSN = 5/3600
@@ -260,15 +274,22 @@ def FinalWISE(RAdeg, Decdeg, gmag):
             WISE.queryWise(RAdeg,Decdeg,ref_epoch=2020,pmra=0,pmdec=0)
             nWISE = WISE.saveFilters(RAdeg,Decdeg)
             if nWISE is not None:
+                log.write("WISE: %d\n"%nWISE)
                 print("Found %d measurement(s).\n" %nWISE)
         except:
+            log.write("WISE: 0\n")
             print("Failed!\n")
     else:
         print("WISE data already present in directory.\n")
 
 def FinalNEOWISE(RAdeg, Decdeg, radius):
     try:
-        NEOWISE.queryWise(RAdeg, Decdeg, radius)
+        nNEOWISE = NEOWISE.queryWise(RAdeg, Decdeg, radius)
+        if nNEOWISE is not None:
+            print("Found neoWISE data: %d measurement(s).\n" %nNEOWISE)
+            log.write("NeoWISE: %d\n"%nNEOWISE)
+        else:
+            log.write("NeoWISE: 0\n")
         NEOWISE.saveFilters(RAdeg, Decdeg)
     except Exception as e: print("error neowise"); print(e)
 
@@ -334,6 +355,8 @@ if __name__ == '__main__':
         extra_flags = yaml.safe_load(f)
 
     wantSED=extra_flags['SED']['plot']
+    radSED=extra_flags['SED']['radius']
+
     wantGaiaHR=extra_flags['GaiaHR']['plot']
     wantCDS=extra_flags['CDS']['create']
     wantGaiaDatalink=extra_flags['GaiaDatalink']['create']
@@ -402,9 +425,6 @@ if __name__ == '__main__':
 
         print("### WORKING ON OBJECT %s ###\n"%jname)
 
-        print("Gaia ID: %s" %GaiaSourceID)
-        print("Gaia G: %5.2f\n" %Gaia_Gmag)
-
         try:
             if remove_old_dir==True:     miscAstro.remDir(folder)
         except:None
@@ -413,6 +433,13 @@ if __name__ == '__main__':
         try: os.mkdir(str(jname))
         except: None
         os.chdir(folder)
+
+        log = open('%s.log'%(jname), "w")
+
+        print("Gaia ID: %s" %GaiaSourceID)
+        log.write("source_id: %s\n"%(GaiaSourceID))
+        print("Gaia G: %5.2f\n" %Gaia_Gmag)
+        log.write("G: %5.2f\n"%(Gaia_Gmag))
 
         #try: os.mkdir("files")
         #except: None
@@ -433,14 +460,19 @@ if __name__ == '__main__':
 
         if wantSDSS:
             print("#Checking SDSS...")
+            log.write("SDSS:\n")
             photSDSS=Final_SDSS(RAdeg,Decdeg,radSDSS)
             if photSDSS is not None:
                 uv,g,r,i,z,spec = photSDSS
                 print("u=%4.1f, g=%4.1f, r=%4.1f, i=%4.1f, z=%4.1f" %(uv,g,r,i,z))
+                log.write("  - phot: True\n")
                 if spec:
                     print("Found at least one spectrum.\n")
+                    log.write("  - spec: True\n")
                 else:
                     print("No spectra found.\n")
+                    log.write("  - spec: False\n")
+
 
         if wantNEOWISE:
             print("#Checking neoWISE...")
@@ -448,7 +480,8 @@ if __name__ == '__main__':
             p0.start()
 
         if wantSED:
-            p1 = Process(target = Final_phot_SED_CDS(RADec))
+            log.write("SED: True\n")
+            p1 = Process(target = Final_phot_SED_CDS(RADec, radSED))
             p1.start()
 
         try:
@@ -478,6 +511,8 @@ if __name__ == '__main__':
                 p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec, radZTF))
                 p4.start()
             else:
+                log.write("PTF: -1\n")
+                log.write("ZTF: -1\n")
                 print("Target too bright for ZTF/PTF.\n")
 
         if wantATLASforced:
@@ -493,9 +528,12 @@ if __name__ == '__main__':
                             p5.start()
                     else:
                         print("Outside of ATLAS footprint!\n")
+                        log.write("ATLAS: 0\n")
                 else:
                     print("Target too bright for ATLAS.\n")
+                    log.write("ATLAS: -1\n")
             except:
+                log.write("ATLAS: -99\n")
                 print("Failed!\n")
 
         if wantCatalina:
@@ -504,6 +542,7 @@ if __name__ == '__main__':
                 p6 = Process(target = Final_Catalina(RAdeg,Decdeg, ref_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec,radius=radCatalina)) # bit larger since not as good astrometric solution
                 p6.start()
             else:
+                log.write("Catalina: -1\n")
                 print("Target too bright for Catalina.\n")
 
         if wantPanstarrs:
@@ -512,6 +551,7 @@ if __name__ == '__main__':
                 p7 = Process(target = FinalPanstarrs(RAdeg, Decdeg,radPanstarrs))
                 p7.start()
             else:
+                log.write("PanSTARRS: -1\n")
                 print("Target too bright for PanSTARRS.\n")
 
         #if Gaia_Gmag >= 11: # saturation limit
@@ -524,6 +564,7 @@ if __name__ == '__main__':
                 p9 = Process(target = FinalWISE(RAdeg, Decdeg, gmag=Gaia_Gmag))
                 p9.start()
             else:
+                log.write("WISE: -1\n")
                 print("Target too faint for WISE.\n")
 
         # plot gaia hr
@@ -533,7 +574,9 @@ if __name__ == '__main__':
                 p10 = Process(target = FinalGAIA(RADec, BPRP, GaiaABS_G, gmag=Gaia_Gmag))
                 p10.start()
                 print("Done!\n")
+                log.write("GaiaHR: True\n")
             except:
+                log.write("GaiaHR: False\n")
                 print("Failed!\n")
 
         # get CDS shortcut
@@ -583,31 +626,32 @@ if __name__ == '__main__':
         #    except:
 #                print("None found!\n")
 
-
+        log.close()
+        print("\n##### DONE! #####\n")
 
 
         # here is an example period search following the bare basics. you need to import the file you want.
-        try:
-            from astropy.timeseries import LombScargle
-            from astropy import units as u
-            MJD, mag, mage = np.loadtxt("ZTF_zg.csv", unpack=True)
+        #try:
+        #    from astropy.timeseries import LombScargle
+        #    from astropy import units as u
+        #    MJD, mag, mage = np.loadtxt("ZTF_zg.csv", unpack=True)
             # remember that this is MJD!!! you should always convert your system to the barycentric reference frame.
             # see tdb Barycentric Dynamical Time (TDB)   under https://docs.astropy.org/en/stable/time/index.html
             # you can do it all with astropy routines
-            frequency, power = LombScargle(MJD*u.d, mag, dy=mage).autopower()
-            plt.plot(frequency, power)
-            plt.xlabel("Frequency " +str(frequency.unit))
-            plt.ylabel("Power")
-            plt.savefig("ZTFperiodogram.png")
-            plt.clf()
+        #    frequency, power = LombScargle(MJD*u.d, mag, dy=mage).autopower()
+        #    plt.plot(frequency, power)
+        #    plt.xlabel("Frequency " +str(frequency.unit))
+        #    plt.ylabel("Power")
+        #    plt.savefig("ZTFperiodogram.png")
+        #    plt.clf()
 
 
             # fold data at the highest peak... this may not be the true frequency of the system
-            best_frequency = frequency[power==np.amax(power)]
-            period=1/best_frequency.value[0]
-            plt.errorbar((MJD%period)/period, mag, yerr=mage, fmt='.k')
-            plt.savefig("ZTFphasefold.png")
-            plt.clf()
+        #    best_frequency = frequency[power==np.amax(power)]
+        #    period=1/best_frequency.value[0]
+        #    plt.errorbar((MJD%period)/period, mag, yerr=mage, fmt='.k')
+        #    plt.savefig("ZTFphasefold.png")
+        #    plt.clf()
 
             # and if you want to get into periodograms and period searching more seriously, PLEASE read these
             # https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
@@ -615,7 +659,7 @@ if __name__ == '__main__':
 
             # lastly I recommend investigating the BLS search, typical for eclipsing systems/exoplanets
 
-        except: None
+        #except: None
 
 
         # neaten file list
