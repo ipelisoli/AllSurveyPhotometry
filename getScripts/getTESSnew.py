@@ -85,7 +85,7 @@ class TESS(object):
 
 
             if lcfound:
-                np.savetxt("TESS_"+str(time)+".csv", np.array([lc_obj.time + 2457000- 2400000.5, lc_obj.flux, lc_obj.flux_err]).T, fmt="%s")
+                np.savetxt("TESS_"+str(time)+".dat", np.array([lc_obj.time + 2457000- 2400000.5, lc_obj.flux, lc_obj.flux_err]).T, fmt="%s")
                 # time is output as BJD
 
 

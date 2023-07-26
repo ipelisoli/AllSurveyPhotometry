@@ -152,7 +152,7 @@ class ZTF(object):
             plt.scatter(mjd.astype(float)[mask], mag.astype(float)[mask], label=filt)
             plt.errorbar(mjd.astype(float)[mask], mag.astype(float)[mask], yerr=magerr.astype(float)[mask], ls=' ')
             if saveit==True:
-                np.savetxt("ZTF_"+str(filt)+".csv", np.array([mjd.astype(float)[mask], mag.astype(float)[mask], magerr.astype(float)[mask] ]).T, fmt="%s")
+                np.savetxt("ZTF_"+str(filt)+".dat", np.array([mjd.astype(float)[mask], mag.astype(float)[mask], magerr.astype(float)[mask] ]).T, fmt="%s")
         #if saveit==True:
         #    plt.legend(loc="upper right")
         #    plt.xlabel("MJD")

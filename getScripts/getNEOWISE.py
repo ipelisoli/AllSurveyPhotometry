@@ -50,7 +50,7 @@ class NEOWISE(object):
             bjd=miscAstro.jd_corr(mjd,RAdeg,Decdeg,loc=EarthLocation.of_site("lapalma")).value
             w1mag=table['w1mpro'][mask1]
             w1mage=table['w1sigmpro'][mask1]
-            np.savetxt("NEOWISE_W1.csv", np.array([bjd, w1mag, w1mage]).T)
+            np.savetxt("NEOWISE_W1.dat", np.array([bjd, w1mag, w1mage]).T)
 
             # Write W2 data to separate file
             mask2=(table['w2mpro'] > 0)
@@ -59,7 +59,7 @@ class NEOWISE(object):
             bjd=miscAstro.jd_corr(mjd,RAdeg,Decdeg,loc=EarthLocation.of_site("lapalma")).value
             w2mag=table['w2mpro'][mask2]
             w2mage=table['w2sigmpro'][mask2]
-            np.savetxt("NEOWISE_W2.csv", np.array([bjd, w2mag, w2mage]).T)
+            np.savetxt("NEOWISE_W2.dat", np.array([bjd, w2mag, w2mage]).T)
 
         except FileNotFoundError:
             return

@@ -56,9 +56,9 @@ class PTF(object):
                 r=b[8]=="2"
                 g=b[8]=="1"
                 if len(obsmjd[r])>0:
-                    np.savetxt("PTF_r.csv", np.array([obsmjd[r], mag_autocorr[r], magerr_auto[r]]).T)
+                    np.savetxt("PTF_r.dat", np.array([obsmjd[r], mag_autocorr[r], magerr_auto[r]]).T)
                 if len(obsmjd[g])>0:
-                    np.savetxt("PTF_g.csv", np.array([obsmjd[g], mag_autocorr[g], magerr_auto[g]]).T)
+                    np.savetxt("PTF_g.dat", np.array([obsmjd[g], mag_autocorr[g], magerr_auto[g]]).T)
                 return len(obsmjd)
 
             except:
