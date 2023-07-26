@@ -269,6 +269,8 @@ if __name__ == '__main__':
     joinTESS=True
     joinK2=True
 
+    input_file = sys.argv[1]
+
     # What data do you want?
     with open('flags_photometry.yml') as f:
         phot_flags = yaml.safe_load(f)
@@ -315,7 +317,7 @@ if __name__ == '__main__':
     remove_old_dir=False # are you sure? put twice to make sure you are positive
 
 
-    t = Table.read("example.fits")
+    t = Table.read(input_file)
 
 
     NameOfNewDir = "Objects"
