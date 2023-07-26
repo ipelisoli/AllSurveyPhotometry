@@ -107,20 +107,19 @@ class checkLocalStars(object):
 
 
         if result_ATLAS_MASSIVE:
-            if np.all(star_mag < result_ATLAS['Gmag']-1) and np.all(result_ATLAS_MASSIVE['Gmag'] > 13):  # if it is easily the brightest star there
-                #print("passed checks with other stars")
-                return "Good"
-            elif np.all(star_mag < result_ATLAS['Gmag']+0.5) and np.all(result_ATLAS_MASSIVE['Gmag'] > 13): # elif it is half a mag brighter than the others in the local area
-                #print("maybe, take care for ATLAS")
-                print("ATLAS data may be poor due to a close contaminant")
-                return "Maybe"
-            else: # don't try, too much faff
-                print("ATLAS data is very likely poor quality from a close and bright contaminant, so I am not querying ATLAS")
-                #print("Did not pass checkLocalStars.py check for ATLAS, so I will not query ATLAS")
-                return "No"
+            if np.all(result_ATLAS_MASSIVE['Gmag'] > 13):
+                if np.all(star_mag < result_ATLAS['Gmag']-1):
+                    print("Crowding ok: brightest star in the field.")
+                    return True
+                else:
+                    print("Warning! ATLAS data might be contaminated by nearby stars.")
+                    return True
+            else:
+                print("ATLAS contaminated by a close and bright star, skipping ATLAS.\n")
+                return False
         else:
-            #print("only star, fine to go");
-            return "Good"
+            print("No crowding issues: only star in the field.")
+            return True
 
 
 # We have  2347 out of  2784 remaining (progress =  15.7 % )

@@ -127,27 +127,27 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
     radZTF = radius/3600.   #  arcseconds in degrees
     if Decdeg > -34:
         if wantPTF: # this is globally set at the start
-            print("Querying PTF...")
+            print("Checking PTF...")
             PTF.queryPTF(RA,Dec,str(radius))
             nPTF = PTF.splitRandG_PTF()
             if nPTF:
-                print("Found %d measurement(s)."%nPTF)
+                print("Found %d measurement(s).\n"%nPTF)
             else:
-                print("No data found.")
+                print("No data found.\n")
         # getZTF
         if wantZTF: # this is globally set at the start
-            print("Querying ZTF...")
+            print("Checking ZTF...")
             urlZTF=ZTF.create_url(None, [RAdeg,Decdeg,radZTF], BAD_CATFLAGS_MASK=True) # radius in deg
             try:
                 nZTF = ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
                 if nZTF > 0:
-                    print("Found %d measurement(s)."%nZTF)
+                    print("Found %d measurement(s).\n"%nZTF)
                 else:
-                    print("No data found.")
+                    print("No data found.\n")
             except:
-                print("No data found.")
+                print("No data found.\n")
     else:
-        print("Querying PTF/ZTF...")
+        print("Checking PTF/ZTF...")
         print("Outside of PTF/ZTF footprint!\n")
 
 
@@ -157,7 +157,7 @@ def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #c
     # you can change how you want the photometry to be computed - difference imaging or placing an aperture. check the online docs and the script that handles ATLAS things
     # https://fallingstar-data.com/forcedphot/apiguide/
     try:
-        if wantATLASforced==True: # this is globally set at the start
+        if wantATLASforced: # this is globally set at the start
 
             if "data.txt" in os.listdir(os.getcwd()) and not "dataATLASalreadyprocessed.txt" in os.listdir(os.getcwd()): #if I manually had to get the file from ATLAS because of a break
                 a = dfresult = pd.read_csv("data.txt", delim_whitespace=True)
@@ -418,7 +418,7 @@ if __name__ == '__main__':
         #print(colored((RA,Dec),'cyan')); print(RAdeg, Decdeg)
 
         if wantSDSS:
-            print("Querying SDSS...")
+            print("Checking SDSS...")
             photSDSS=Final_SDSS(RAdeg,Decdeg,radSDSS)
             if photSDSS is not None:
                 uv,g,r,i,z,spec = photSDSS
@@ -429,7 +429,7 @@ if __name__ == '__main__':
                     print("No spectra found.\n")
 
         if wantNEOWISE:
-            print("Querying neoWISE...")
+            print("Checking neoWISE...")
             p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, radNEOWISE))
             p0.start()
 
@@ -443,7 +443,7 @@ if __name__ == '__main__':
         except: None
 
         if wantTESS:
-            print("Querying TESS...")
+            print("Checking TESS...")
             returnClause = checkLocalStars.localTESS(obj,star_mag)
             if returnClause:
                 p2 = Process(target = Final_TESS(RADec,radTESS))
@@ -451,7 +451,7 @@ if __name__ == '__main__':
                 joinTESS=True
 
         if wantK2:
-            print("Querying K2...")
+            print("Checking K2...")
             returnClause = checkLocalStars.localK2(obj,star_mag)
             if returnClause:
                 p3 = Process(target = Final_K2(RADec,radK2))
@@ -464,18 +464,25 @@ if __name__ == '__main__':
                 p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec, radZTF))
                 p4.start()
             else:
-                print("Target too bright for ZTF/PTF.")
+                print("Target too bright for ZTF/PTF.\n")
 
-
-        try:
-            if Gaia_Gmag >12.5 and Decdeg>=-45: # saturation limit
-                if wantATLASforced==True:
-                    returnClause = checkLocalStars.localATLAS(obj,star_mag)
-                    if returnClause == "Good":
-                        p5 = Process(target = Final_ATLAS_forced(RAdeg,Decdeg,RA,Dec,reference_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec))
-                        #p5 = Process(target = Final_ATLAS_forced(RAdeg,Decdeg,RA,Dec,reference_epoch=2016, pmra=-146.303, pmdec=-155.864))
-                        p5.start()
-        except: None
+        if wantATLASforced:
+            print("Checking ATLAS...")
+            try:
+                if Gaia_Gmag >12.5:
+                    if Decdeg>=-45: # saturation limit
+                        returnClause = checkLocalStars.localATLAS(obj,star_mag)
+                        if returnClause:
+                            print("Querying ATLAS database, this might take a few minutes.")
+                            p5 = Process(target = Final_ATLAS_forced(RAdeg,Decdeg,RA,Dec,reference_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec))
+                            #p5 = Process(target = Final_ATLAS_forced(RAdeg,Decdeg,RA,Dec,reference_epoch=2016, pmra=-146.303, pmdec=-155.864))
+                            p5.start()
+                    else:
+                        print("Outside of ATLAS footprint!\n")
+                else:
+                    print("Target too bright for ATLAS.\n")
+            except:
+                print("Failed!\n")
 
         if Gaia_Gmag >= 13: # saturation limit
             p6 = Process(target = Final_Catalina(RAdeg,Decdeg, ref_epoch=ref_epoch, pmra=propermRA, pmdec=propermDec)) # bit larger since not as good astrometric solution
