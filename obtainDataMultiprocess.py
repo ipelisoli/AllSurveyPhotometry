@@ -224,12 +224,13 @@ def FinalGAIA(ProbWD,RADec, BP_RP, Abs_g, TeffH, gmag):
     if wantGaiaHR ==True:
         OverplotGaia.plotGaia(ProbWD,RADec, BP_RP, Abs_g, TeffH, gmag)
 
-def FinalPanstarrs(RAdeg,Decdeg):
-    radius_Panstarrs = 3/3600
-    if wantPanstarrs==True :
-        getPanstarrs.getAllData(RAdeg,Decdeg, rad=radius_Panstarrs)
-        getPanstarrs.getPanstarrsLCs(RAdeg,Decdeg)
-        getPanstarrs.getPanstarrsMeanMags()
+def FinalPanstarrs(RAdeg,Decdeg,radius):
+    radius_Panstarrs = radius/3600.
+    getPanstarrs.getAllData(RAdeg,Decdeg, rad=radius_Panstarrs)
+    nPS = getPanstarrs.getPanstarrsLCs(RAdeg,Decdeg)
+    if nPS is not None:
+        print("Found %d measurement(s).\n" %nPS)
+    #getPanstarrs.getPanstarrsMeanMags()
 
 def FinalASASSN(RAdeg, Decdeg, eDR3name="a"):
     radius_ASASSN = 5/3600
@@ -313,7 +314,10 @@ if __name__ == '__main__':
     radCatalina=phot_flags['Catalina']['radius']
 
     wantPTF=phot_flags['PTF']['download']
+
     wantPanstarrs=phot_flags['PanSTARRS']['download']
+    radPanstarrs=phot_flags['PanSTARRS']['radius']
+
     wantWISE=phot_flags['WISE']['download']
 
     # neoWISE can be long to query
@@ -498,9 +502,13 @@ if __name__ == '__main__':
             else:
                 print("Target too bright for Catalina.\n")
 
-        if Gaia_Gmag >= 12: # saturation limit
-            p7 = Process(target = FinalPanstarrs(RAdeg, Decdeg))
-            p7.start()
+        if wantPanstarrs:
+            print("Checking PanSTARRS...")
+            if Gaia_Gmag >= 12: # saturation limit
+                p7 = Process(target = FinalPanstarrs(RAdeg, Decdeg,radPanstarrs))
+                p7.start()
+            else:
+                print("Target too bright for PanSTARRS.\n")
 
         #if Gaia_Gmag >= 11: # saturation limit
         #    p8 = Process(target = FinalASASSN(RAdeg, Decdeg, eDR3name="EDR3 "+str(GaiaSourceID)))
