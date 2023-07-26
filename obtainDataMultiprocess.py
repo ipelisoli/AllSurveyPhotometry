@@ -127,7 +127,7 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
     radZTF = radius/3600.   #  arcseconds in degrees
     if Decdeg > -34:
         if wantPTF: # this is globally set at the start
-            print("Checking PTF...")
+            print("#Checking PTF...")
             PTF.queryPTF(RA,Dec,str(radius))
             nPTF = PTF.splitRandG_PTF()
             if nPTF:
@@ -136,7 +136,7 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
                 print("No data found.\n")
         # getZTF
         if wantZTF: # this is globally set at the start
-            print("Checking ZTF...")
+            print("#Checking ZTF...")
             urlZTF=ZTF.create_url(None, [RAdeg,Decdeg,radZTF], BAD_CATFLAGS_MASK=True) # radius in deg
             try:
                 nZTF = ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
@@ -147,7 +147,7 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
             except:
                 print("No data found.\n")
     else:
-        print("Checking PTF/ZTF...")
+        print("#Checking PTF/ZTF...")
         print("Outside of PTF/ZTF footprint!\n")
 
 
@@ -157,48 +157,48 @@ def Final_ATLAS_forced(RAdeg, Decdeg, RA, Dec, reference_epoch, pmra, pmdec): #c
     # you can change how you want the photometry to be computed - difference imaging or placing an aperture. check the online docs and the script that handles ATLAS things
     # https://fallingstar-data.com/forcedphot/apiguide/
     try:
-        if wantATLASforced: # this is globally set at the start
+        if "data.txt" in os.listdir(os.getcwd()) and not "dataATLASalreadyprocessed.txt" in os.listdir(os.getcwd()): #if I manually had to get the file from ATLAS because of a break
+            a = dfresult = pd.read_csv("data.txt", delim_whitespace=True)
+            if minimumMJD==50000:
+                getATLASforcedPHOT.plot_and_save_data(a,"FirstTime")
+            else:
+                getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
+            np.savetxt("dataATLASalreadyprocessed.txt", np.array(["nope"]))
 
-            if "data.txt" in os.listdir(os.getcwd()) and not "dataATLASalreadyprocessed.txt" in os.listdir(os.getcwd()): #if I manually had to get the file from ATLAS because of a break
-                a = dfresult = pd.read_csv("data.txt", delim_whitespace=True)
+        else:
+            if "ATLAS_c.dat" in os.listdir(os.getcwd()) or "ATLAS_o.dat" in os.listdir(os.getcwd()):
+                try:
+                    MJD_c = np.loadtxt("ATLAS_c.dat", unpack=True, usecols=(0))
+                    maxMJD_c=np.amax(MJD_c)+0.1 # +0.1 just to ignore the first measurement
+                except: None
+
+                try:
+                    MJD_o = np.loadtxt("ATLAS_o", unpack=True, usecols=(0))
+                    maxMJD_o=np.amax(MJD_o)+0.1 # +0.1 just to ignore the first measurement
+                except: None
+
+                # first get the largest MJD value between both files if they exist
+                try: minimumMJD=np.amax(np.array([maxMJD_c,maxMJD_o]))
+                except:
+                    try: #otherwise get the largest of the _c file
+                        minimumMJD=maxMJD_c*-1
+                    except: #otherwise get the largest of the _o file
+                        minimumMJD=maxMJD_o*-1
+            else: minimumMJD=50000 # else there is no prior entry and we ask for all the data
+
+            dt = datetime.today().strftime('%Y-%m-%d')
+            today=(list(sqlite3.connect(":memory:").execute("select julianday('" + dt + "')"))[0][0] -2400000.5)
+
+            if abs(today-minimumMJD)>182.5:
+                a=getATLASforcedPHOT.ATLAS(getpwds.ATLAS()[0], getpwds.ATLAS()[1], RAdeg, Decdeg,
+                                           reference_epoch, pmra, pmdec, minMJD=minimumMJD)#minimumMJD)
+
                 if minimumMJD==50000:
-                    getATLASforcedPHOT.plot_and_save_data(a,"FirstTime")
+                    nATLAS = getATLASforcedPHOT.plot_and_save_data(a,"FirstTime")
+                    print("Found %d measurements.\n" %nATLAS)
                 else:
                     getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
-                np.savetxt("dataATLASalreadyprocessed.txt", np.array(["nope"]))
-
-            else:
-                if "ATLAS_filtC_flux_and_err.dat" in os.listdir(os.getcwd()) or "ATLAS_filtO_flux_and_err.dat" in os.listdir(os.getcwd()):
-                    try:
-                        MJD_c,uJy_c, duJy_c, RA_c, Dec_c = np.loadtxt("ATLAS_filtC_flux_and_err.dat", unpack=True)
-                        maxMJD_c=np.amax(MJD_c)+0.1 # +0.1 just to ignore the first measurement
-                    except: None
-
-                    try:
-                        MJD_o,uJy_o, duJy_o, RA_o, Dec_o = np.loadtxt("ATLAS_filtO_flux_and_err.dat", unpack=True)
-                        maxMJD_o=np.amax(MJD_o)+0.1 # +0.1 just to ignore the first measurement
-                    except: None
-
-                    # first get the largest MJD value between both files if they exist
-                    try: minimumMJD=np.amax(np.array([maxMJD_c,maxMJD_o]))
-                    except:
-                        try: #otherwise get the largest of the _c file
-                            minimumMJD=maxMJD_c*-1
-                        except: #otherwise get the largest of the _o file
-                            minimumMJD=maxMJD_o*-1
-                else: minimumMJD=50000 # else there is no prior entry and we ask for all the data
-
-                dt = datetime.today().strftime('%Y-%m-%d')
-                today=(list(sqlite3.connect(":memory:").execute("select julianday('" + dt + "')"))[0][0] -2400000.5)
-
-                if abs(today-minimumMJD)>182.5:
-                    a=getATLASforcedPHOT.ATLAS(getpwds.ATLAS()[0], getpwds.ATLAS()[1], RAdeg, Decdeg,
-                                               reference_epoch, pmra, pmdec, minMJD=minimumMJD)#minimumMJD)
-
-                    if minimumMJD==50000:
-                        getATLASforcedPHOT.plot_and_save_data(a,"FirstTime")
-                    else:
-                        getATLASforcedPHOT.plot_and_save_data(a,"AddToOriginal")
+                    print("Found %d measurements.\n" %nATLAS)
 
     except:
         with open("../../list_of/bad_atlas.txt", "a") as atlasfile:
@@ -212,7 +212,7 @@ def Final_Catalina(RAdeg,Decdeg,ref_epoch,pmra,pmdec):
     if wantCatalina==True and not "CatalinaDataset.csv" in os.listdir(os.getcwd()): # this is globally set at the start
         try:
             getCatalinaData.getData(RAdeg,Decdeg,ref_epoch,pmra,pmdec,radius_catalina)
-            getCatalinaData.plot()
+            #getCatalinaData.plot()
             getCatalinaData.handleData(RAdeg,Decdeg)
         except: None
 
@@ -418,7 +418,7 @@ if __name__ == '__main__':
         #print(colored((RA,Dec),'cyan')); print(RAdeg, Decdeg)
 
         if wantSDSS:
-            print("Checking SDSS...")
+            print("#Checking SDSS...")
             photSDSS=Final_SDSS(RAdeg,Decdeg,radSDSS)
             if photSDSS is not None:
                 uv,g,r,i,z,spec = photSDSS
@@ -429,7 +429,7 @@ if __name__ == '__main__':
                     print("No spectra found.\n")
 
         if wantNEOWISE:
-            print("Checking neoWISE...")
+            print("#Checking neoWISE...")
             p0 = Process(target = FinalNEOWISE(RAdeg, Decdeg, radNEOWISE))
             p0.start()
 
@@ -443,7 +443,7 @@ if __name__ == '__main__':
         except: None
 
         if wantTESS:
-            print("Checking TESS...")
+            print("#Checking TESS...")
             returnClause = checkLocalStars.localTESS(obj,star_mag)
             if returnClause:
                 p2 = Process(target = Final_TESS(RADec,radTESS))
@@ -451,7 +451,7 @@ if __name__ == '__main__':
                 joinTESS=True
 
         if wantK2:
-            print("Checking K2...")
+            print("#Checking K2...")
             returnClause = checkLocalStars.localK2(obj,star_mag)
             if returnClause:
                 p3 = Process(target = Final_K2(RADec,radK2))
@@ -467,7 +467,7 @@ if __name__ == '__main__':
                 print("Target too bright for ZTF/PTF.\n")
 
         if wantATLASforced:
-            print("Checking ATLAS...")
+            print("#Checking ATLAS...")
             try:
                 if Gaia_Gmag >12.5:
                     if Decdeg>=-45: # saturation limit

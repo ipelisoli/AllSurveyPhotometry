@@ -129,23 +129,25 @@ class getATLASforcedPHOT(object):
 
         if string=="AddToOriginal":
             try:
-                mjdFileo, magFileo, dmagFileo, uJyFileo, duJyFileo = np.loadtxt("ATLAS_filtO_flux_and_err.dat", unpack=True)
+                #mjdFileo, magFileo, dmagFileo, uJyFileo, duJyFileo = np.loadtxt("ATLAS_filtO_flux_and_err.dat", unpack=True)
+                mjdFileo, magFileo, dmagFileo = np.loadtxt("ATLAS_o.dat", unpack=True)
 
                 MJDo=np.concatenate((MJDo, mjdFileo))
                 mago=np.concatenate((mago,magFileo))
                 dmago=np.concatenate((dmago,dmagFileo))
-                uJyo=np.concatenate((uJyo,uJyFileo))
-                duJyo=np.concatenate((duJyo,duJyFileo))
+                #uJyo=np.concatenate((uJyo,uJyFileo))
+                #duJyo=np.concatenate((duJyo,duJyFileo))
             except: None
 
             try:
-                mjdFilec, magFilec, dmagFilec, uJyFilec, duJyFilec = np.loadtxt("ATLAS_filtC_flux_and_err.dat", unpack=True)
+                #mjdFilec, magFilec, dmagFilec, uJyFilec, duJyFilec = np.loadtxt("ATLAS_filtC_flux_and_err.dat", unpack=True)
+                mjdFilec, magFilec, dmagFilec = np.loadtxt("ATLAS_c.dat", unpack=True)
 
                 MJDc=np.concatenate((MJDc, mjdFilec))
                 magc=np.concatenate((magc,magFilec))
                 dmagc=np.concatenate((dmagc,dmagFilec))
-                uJyc=np.concatenate((uJyc,uJyFilec))
-                duJyc=np.concatenate((duJyc,duJyFilec))
+                #uJyc=np.concatenate((uJyc,uJyFilec))
+                #duJyc=np.concatenate((duJyc,duJyFilec))
             except: None
 
             maxit=1
@@ -165,3 +167,4 @@ class getATLASforcedPHOT(object):
         np.savetxt("ATLAS_o.dat", np.array([MJDo[~masked_o],mago[~masked_o],dmago[~masked_o]]).T)#,uJyo[~masked_o], duJyo[~masked_o] ]).T)
         # flux is in microjanskys, same for error. RA Dec are in degrees
         #plt.close()
+        return len(MJD)
