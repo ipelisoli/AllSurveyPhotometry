@@ -129,13 +129,23 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
         if wantPTF: # this is globally set at the start
             print("Querying PTF...")
             PTF.queryPTF(RA,Dec,str(radius))
-            PTF.splitRandG_PTF()
+            nPTF = PTF.splitRandG_PTF()
+            if nPTF:
+                print("Found %d measurement(s)."%nPTF)
+            else:
+                print("No data found.")
         # getZTF
         if wantZTF: # this is globally set at the start
             print("Querying ZTF...")
             urlZTF=ZTF.create_url(None, [RAdeg,Decdeg,radZTF], BAD_CATFLAGS_MASK=True) # radius in deg
-            try: ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
-            except: None
+            try:
+                nZTF = ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
+                if nZTF > 0:
+                    print("Found %d measurement(s)."%nZTF)
+                else:
+                    print("No data found.")
+            except:
+                print("No data found.")
     else:
         print("Querying PTF/ZTF...")
         print("Outside of PTF/ZTF footprint!\n")

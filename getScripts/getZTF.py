@@ -124,7 +124,8 @@ class ZTF(object):
 
 
 
-        #ZTF.plot_photometry(os.getcwd(), filename)
+        nZTF = ZTF.plot_photometry(os.getcwd(), filename)
+        return nZTF
 
 
     def plot_photometry(cwd, filename, saveit=True):
@@ -139,8 +140,8 @@ class ZTF(object):
 
         oid, expid, hjd, mjd, mag, magerr, catflags, filtercode, ra, dec, chi, sharp, filefracday, field, ccdid, qid, limitmag, magzp, magzprms, clrcoeff, clrcounc, exptime, airmass, programid= np.asarray(data).T
 
-        if saveit==True:
-            plt.clf()
+        #if saveit==True:
+        #    plt.clf()
 
         for filt in np.unique(filtercode):
 
@@ -152,11 +153,12 @@ class ZTF(object):
             plt.errorbar(mjd.astype(float)[mask], mag.astype(float)[mask], yerr=magerr.astype(float)[mask], ls=' ')
             if saveit==True:
                 np.savetxt("ZTF_"+str(filt)+".csv", np.array([mjd.astype(float)[mask], mag.astype(float)[mask], magerr.astype(float)[mask] ]).T, fmt="%s")
-        if saveit==True:
-            plt.legend(loc="upper right")
-            plt.xlabel("MJD")
-            plt.ylabel("mag")
-            plt.gca().invert_yaxis()
-            plt.autoscale()
-            plt.savefig("ZTFphot.pdf")
-            plt.close()
+        #if saveit==True:
+        #    plt.legend(loc="upper right")
+        #    plt.xlabel("MJD")
+        #    plt.ylabel("mag")
+        #    plt.gca().invert_yaxis()
+        #    plt.autoscale()
+        #    plt.savefig("ZTFphot.pdf")
+        #    plt.close()
+        return len(hjd)
