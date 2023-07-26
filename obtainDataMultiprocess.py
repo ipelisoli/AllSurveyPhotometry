@@ -122,9 +122,9 @@ def Final_TESS(RADec, radius):
         TESS.get_tess(RADec, time=time, radius=radius, ignore_any_dodgyness=False) # ignore_any_dodgyness= True # this command will not process any lightcurve that includes nans at any point
     print("\n")
 
-def Final_ZTF(RAdeg, Decdeg, RA, Dec):
+def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
     #getPTF
-    radius_ZTF = 2.5/3600   #  arcseconds in degrees
+    radZTF = radius/3600.   #  arcseconds in degrees
     if Decdeg > -34:
         if wantPTF: # this is globally set at the start
             print("Querying PTF...")
@@ -133,7 +133,7 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec):
         # getZTF
         if wantZTF: # this is globally set at the start
             print("Querying ZTF...")
-            urlZTF=ZTF.create_url(None, [RAdeg,Decdeg,radius_ZTF], BAD_CATFLAGS_MASK=True) # radius in deg
+            urlZTF=ZTF.create_url(None, [RAdeg,Decdeg,radZTF], BAD_CATFLAGS_MASK=True) # radius in deg
             try: ZTF.save_data(RADec,     ZTF.get_data(urlZTF, (getpwds.ZTF()[0], getpwds.ZTF()[1])))
             except: None
     else:
@@ -291,6 +291,8 @@ if __name__ == '__main__':
             sys.exit()
 
     wantZTF=phot_flags['ZTF']['download']
+    radZTF=phot_flags['ZTF']['radius']
+
     # ATLAS might take a couple of minutes as a request is queued to their server
     wantATLASforced=phot_flags['ATLAS']['download']
     wantCatalina=phot_flags['Catalina']['download']
@@ -449,7 +451,7 @@ if __name__ == '__main__':
         if wantZTF or wantPTF:
             if Gaia_Gmag >12.5: # saturation limit
             # note that I put my own quality control cut on the ztf data by airmass and zeropoint rms
-                p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec))
+                p4 = Process(target = Final_ZTF(RAdeg,Decdeg, RA, Dec, radZTF))
                 p4.start()
             else:
                 print("Target too bright for ZTF/PTF.")
