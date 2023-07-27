@@ -315,9 +315,6 @@ if __name__ == '__main__':
     with open('flags_photometry.yml') as f:
         phot_flags = yaml.safe_load(f)
 
-    wantSDSS=phot_flags['SDSS']['download']
-    radSDSS=float(phot_flags['SDSS']['radius'])
-
     wantK2=phot_flags['K2']['download']
     radK2=float(phot_flags['K2']['radius'])
 
@@ -355,6 +352,9 @@ if __name__ == '__main__':
     # What extras are required?
     with open('flags_extras.yml') as f:
         extra_flags = yaml.safe_load(f)
+
+    wantSDSS=extra_flags['SDSS']['download']
+    radSDSS=float(extra_flags['SDSS']['radius'])
 
     wantSED=extra_flags['SED']['plot']
     radSED=extra_flags['SED']['radius']
@@ -398,11 +398,12 @@ if __name__ == '__main__':
         propermRA = t['pmra'].value[count]     # the Gaia proper motion in RA
         propermDec = t['pmdec'].value[count]   # the Gaia proper motion in Dec
         #probWD = t['Pwd'].value[count]    # This is specific for white dwarfs and is just for the title of a graph. set this equal to 0 if you do not care about WDs. I use it as the probability of a white dwarf
-        BPRP = t['bp_rp'].value[count]    # Gaia BP-RP
         GaiaSourceID = t['source_id'].value[count]    # Gaia source ID. Working as of DR3
-        parallax = t['parallax'].value[count]
-        GaiaABS_G = 5.+5.*np.log10(parallax/1000.)+Gaia_Gmag  # Absolute magnitude in Gaia G
-        #Teff = t['teff_H'].value[count]     # Teff of the object
+        if wantGaiaHR:
+            BPRP = t['bp_rp'].value[count]    # Gaia BP-RP
+            parallax = t['parallax'].value[count]
+            GaiaABS_G = 5.+5.*np.log10(parallax/1000.)+Gaia_Gmag  # Absolute magnitude in Gaia G
+            #Teff = t['teff_H'].value[count]     # Teff of the object
 
         coo = ICRS(RAdeg*u.degree, Decdeg*u.degree)
         jname = (f'J{coo.ra.to_string(unit=u.hourangle, sep="", precision=2, pad=True)}'f'{coo.dec.to_string(sep="", precision=1, alwayssign=True, pad=True)}')

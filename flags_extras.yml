@@ -1,3 +1,7 @@
+SDSS:
+  download: True
+  radius: 3.
+
 SED:
   plot: False
   radius: 3.
