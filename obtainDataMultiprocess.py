@@ -239,12 +239,13 @@ def FinalGAIA(RADec, BP_RP, Abs_g, gmag):
 def FinalPanstarrs(RAdeg,Decdeg,radius):
     radius_Panstarrs = radius/3600.
     getPanstarrs.getAllData(RAdeg,Decdeg, rad=radius_Panstarrs)
-    nPS = getPanstarrs.getPanstarrsLCs(RAdeg,Decdeg)
-    if nPS is not None:
-        log.write("PanSTARRS: %d\n"%nPS)
-        print("Found %d measurement(s).\n" %nPS)
+    try:
+        nPS = getPanstarrs.getPanstarrsLCs(RAdeg,Decdeg)
+        if nPS is not None:
+            log.write("PanSTARRS: %d\n"%nPS)
+            print("Found %d measurement(s).\n" %nPS)
     #getPanstarrs.getPanstarrsMeanMags()
-    else:
+    except:
         log.write("PanSTARRS: 0\n")
 
 def FinalASASSN(RAdeg, Decdeg, eDR3name="a"):
