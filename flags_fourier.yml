@@ -1,0 +1,36 @@
+general:
+  fmin: 0.2
+  fmax: 70.
+  period: 0.
+  sigmaclip: 5.
+  interactive: True
+
+TESS:
+  include: True
+
+ZTF:
+  include: True
+
+ATLAS:
+  include: True
+
+Catalina:
+  include: True
+
+PTF:
+  include: True
+
+PanSTARRS:
+  include: True
+
+WISE:
+  include: True
+
+neoWISE:
+  include: True
+
+ASASSN:
+  include: True
+
+Gaia:
+  include: True

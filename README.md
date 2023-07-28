@@ -9,7 +9,7 @@ Are you sick of people saying after talks "have you checked XXX for data"? Look 
 - Open the flags_photometry.yml to define which photometry surveys you require by setting download to either True or False. When a radius can be set, that should be given in arcsec. For TESS, three cadences are available: fast, short, long. Only the latter seems to be working as expected.
 - Open the flags_extras.yml to define which extras you required. SDSS will check for both photometry and spectroscopy; SED will download and plot SED from VizieR; GaiaHR will plot the HR diagram (white dwarf focused, requires parallax and bp_rp as input); CDS will create a link for the CDS object view; GaiaDataLink will check for additional data in Gaia (epoch photometry, BPRP spectra, RV spectra).
 - Create a list with your target input parameters. Currently required are source_id, ra, dec, ref_epoch, pmra, pmdec (proper motion correction is applied for querying some surveys), phot_g_mean_mag. If wantGaiaHR = True, parallax and bp_rp are also needed. This list can be in any format readable by astropy.table (e.g. fits, csv). There is an example file that can be used for testing.
-- Run the script! If you have all the required packages, it should work. The directory "Objects" should be created and you will see folders for each object. You can enter each folder to see what the outputs look like. Light curves are created as ".dat" files with a name corresponding to the survey+filter (or cadence in the case of TESS/K2). Other extensions are data taken from the survey "as is" (useful if you need to double check any parameters). There will also be a log file reporting e.g. how many measurements were found for each photometric survey.
+- Run the script! If you have all the required packages, it should work. The directory "Objects" should be created and you will see folders for each object. You can enter each folder to see what the outputs look like. Light curves are created as ".dat" files with a name corresponding to the survey+filter (or cadence in the case of TESS/K2). Other extensions are data taken from the survey "as is" (useful if you need to double check any parameters). There will also be a log file reporting e.g. how many measurements were found for each photometric survey. A search for close stars using Gaia is performed for TESS/ATLAS/Kepler photometry, given the large pixels. The search radius conditions reflect the pixel scale of the detector and depending on the level of contamination the data are not downloaded.  
 
 # Current list of implemented surveys:  
 
@@ -31,8 +31,12 @@ Are you sick of people saying after talks "have you checked XXX for data"? Look 
 | ZTF        |    All epoch photometry  | |    MJD       |
 
 ### Extras:  
-Gaia HR plotter  
-checkLocalStars.py - performs a search for close stars using Gaia to not bother obtaining TESS/ATLAS/Kepler photometry. The search radius conditions reflect the pixel scale of the detector (read it)  
+- SDSS photometry and spectra search (spectra are plotted).
+- SED plotter.
+- Gaia HR plotter.  
+- Generates a CDS link.
+- Checks for Gaia additional data (spectra are plotted).
+- Quick-look code for performing Fourier transform. Give the object name as input when running it, and set any required conditions in flags_fourier.yml.
 
 # A note on science usage
 We recommend using this package to simply to check what data is available on various surveys perform preliminary analysis. We take no responsibility for supplying data for published work!
