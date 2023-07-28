@@ -52,8 +52,16 @@ Gaia = fourier_flags['Gaia']['include']
 
 files = []
 
+if neoWISE:
+    files.append("NEOWISE_W1")
+    files.append("NEOWISE_W2")
+
 if TESS:
     files.append("TESS_long")
+
+if PTF:
+    files.append("PTF_r")
+    files.append("PTF_g")
 
 if ZTF:
     files.append("ZTF_zg")
@@ -74,19 +82,11 @@ if PanSTARRS:
     files.append("PANSTARRS_y")
     files.append("PANSTARRS_z")
 
-if PTF:
-    files.append("PTF_r")
-    files.append("PTF_g")
-
 if WISE:
     files.append("WISE_W1")
     files.append("WISE_W2")
     files.append("WISE_W3")
     files.append("WISE_W4")
-
-if neoWISE:
-    files.append("NEOWISE_W1")
-    files.append("NEOWISE_W2")
 
 #if ASASSN:
 #    files.append()
@@ -169,6 +169,7 @@ for file in files:
     plt.axhline(fap_01, c='r', ls='--')
 
     plt.subplot(222)
+    plt.title("%s" %file)
     plt.xlabel("MJD")
     plt.ylabel("Magnitude")
     plt.gca().invert_yaxis()
@@ -182,7 +183,7 @@ for file in files:
     plt.errorbar(phase, m, me, fmt='.k', alpha=0.5)
     plt.errorbar(1+phase, m, me, fmt='.k', alpha=0.5)
     plt.plot(phase_fit, flux_fit, 'r--', lw=5, alpha=0.5)
-    plt.title("Period = %5.2f days" %period)
+    plt.title("Period = %5.2f hours" %(24.*period))
 
     if interac:
         plt.tight_layout()
@@ -191,3 +192,5 @@ for file in files:
         fig.savefig("%s_%s_ft.png"%(obj,file), bbox_inches='tight')
 
     plt.close()
+
+    period = 0

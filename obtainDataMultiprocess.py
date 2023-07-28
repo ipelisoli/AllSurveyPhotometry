@@ -157,6 +157,8 @@ def Final_ZTF(RAdeg, Decdeg, RA, Dec, radius):
                 log.write("ZTF: 0\n")
     else:
         print("#Checking PTF/ZTF...")
+        log.write("PTF: 0\n")
+        log.write("ZTF: 0\n")
         print("Outside of PTF/ZTF footprint!\n")
 
 
@@ -279,6 +281,8 @@ def FinalWISE(RAdeg, Decdeg, gmag):
             if nWISE is not None:
                 log.write("WISE: %d\n"%nWISE)
                 print("Found %d measurement(s).\n" %nWISE)
+            else:
+                log.write("WISE: 0\n")
         except:
             log.write("WISE: 0\n")
             print("Failed!\n")
